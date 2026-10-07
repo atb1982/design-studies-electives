@@ -34,9 +34,17 @@ Under "Filter by day and time" on the page, pick the weekdays you can attend and
 
 ## The Refresh data button
 
-**Refresh data** fetches the newest published `data/electives.json` and redraws the list without losing your filters. It does not contact NC State, because browsers block pages from reading Class Search directly. Visitors see only two buttons: Refresh data and Download CSV.
+By default, **Refresh data** fetches the newest published `data/electives.json` and redraws the list without losing your filters. It does not contact NC State, because browsers block pages from reading Class Search directly.
 
-**Collecting new data from NC State right now** is a maintainer task. Open your site with `#maintainer` at the end of the address, for example `https://YOUR-USERNAME.github.io/design-studies-electives/#maintainer`. A link appears under the buttons that opens the workflow page, where you press **Run workflow**. The run takes about two minutes. After it finishes, press Refresh data. A one-click refresh for every visitor would need a server or a stored access token, which a public static page cannot hold safely.
+To make the button collect new sections from NC State, add a small refresh service (a free Cloudflare Worker, code in `worker/refresh-worker.js`) and put its address in `data/config.json`:
+
+```
+{"refreshUrl": "https://design-studies-refresh.YOUR-NAME.workers.dev"}
+```
+
+The service holds a GitHub token that can only start workflows in this repository. When a visitor presses Refresh data, the page asks the service to start the same workflow that runs each morning, then checks every ten seconds until the new data is published, usually within two to three minutes. If a collection finished in the last 15 minutes, the service declines and the page shows the data already published, so repeated clicks never send repeated requests to NC State. With `refreshUrl` empty, the button falls back to the default behavior above. Test the service code with `node worker/refresh-worker.test.mjs`.
+
+Maintainers can also add `#maintainer` to the site address to see a link to the workflow page, where Run workflow starts a collection directly.
 
 ## Run it on your own computer
 

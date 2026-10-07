@@ -208,7 +208,7 @@ header.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
     <span>Courses tagged "Advisor approval" are not on the catalog's elective lists but usually count toward the degree with an advisor's approval. Special topics sections can carry different topics each semester, so check the topic before you plan around one.</span>
     <span>The 500-level courses are the graduate versions of cross-listed courses that the catalog also lists. The catalog's generic world language entries (WL 2xx to 4xx) are covered through the specific language courses it names.</span>
     <span>Sources: the <a href="https://catalog.ncsu.edu/undergraduate/design/art-design/design-studies-ba/" target="_blank" rel="noopener">Design Studies (BA) catalog page</a> and <a href="https://webappprd.acs.ncsu.edu/php/coursecat/directory.php" target="_blank" rel="noopener">NC State Class Search</a>. This is an unofficial convenience tool.</span>
-    <span>Refresh data shows the newest data this site has published. The site collects new data from NC State every morning, and the time above shows the latest collection.</span>
+    <span id="refnote">Refresh data shows the newest data this site has published. The site collects new data from NC State every morning, and the time above shows the latest collection.</span>
   </section>
 </div>
 
@@ -399,7 +399,10 @@ async function load(manual) {
     const data = await r.json();
     const changed = data.generated !== generated;
     ingest(data); drawTerms(); render();
-    if (manual) setStatus(changed ? 'New data loaded.' : 'Already showing the latest data.');
+    if (manual) {
+      const t = new Date(generated).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      setStatus(changed ? 'New data loaded.' : `You already have the newest data (collected ${t}). New data is collected every morning.`);
+    }
   } catch (e) {
     setStatus(rows.length ? 'Could not reload. Showing the data already loaded.' : 'Could not load ' + DATA_URL + '. If you opened this file directly, publish it with GitHub Pages or serve the folder over http.', true);
   } finally { btn.disabled = false; }
@@ -421,7 +424,51 @@ $('days').addEventListener('click', (e) => {
   b.setAttribute('aria-pressed', on); render();
 });
 $('reset').addEventListener('click', () => { $('q').value = ''; $('avail').value = 'offered'; $('cat').value = ''; $('level').value = ''; $('mode').value = ''; $('from').value = ''; $('until').value = ''; dayPick.clear(); document.querySelectorAll('#days button').forEach((b) => b.setAttribute('aria-pressed', 'false')); render(); });
-$('reload').addEventListener('click', () => load(true));
+$('reload').addEventListener('click', () => (refreshUrl ? collectNow() : load(true)));
+
+/* If data/config.json names a refresh service, the button asks it to collect new sections from NC State
+   (it starts the same GitHub workflow that runs every morning), then waits for the new data to be published. */
+let refreshUrl = '';
+const clockOf = (iso) => new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+async function readConfig() {
+  try {
+    const r = await fetch('data/config.json?ts=' + Date.now(), { cache: 'no-store' });
+    if (r.ok) refreshUrl = String((await r.json()).refreshUrl || '').trim();
+  } catch (e) { /* no config: the button only reloads published data */ }
+  $('refnote').textContent = refreshUrl
+    ? 'Refresh data collects the newest sections from NC State, which takes about two minutes. If a collection finished in the last 15 minutes, it shows that data instead. The site also collects automatically every morning, and the time above shows the latest collection.'
+    : 'Refresh data shows the newest data this site has published. The site collects new data from NC State every morning, and the time above shows the latest collection.';
+}
+async function collectNow() {
+  const btn = $('reload'), before = generated, label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Collecting';
+  try {
+    setStatus('Contacting the refresh service');
+    const out = await (await fetch(refreshUrl, { method: 'POST' })).json();
+    if (out.status === 'cooldown') {
+      await load(false);
+      setStatus(`The data is already fresh (collected ${clockOf(generated)}). You can collect again in about ${out.minutesLeft} minutes.`);
+      return;
+    }
+    if (out.status !== 'started' && out.status !== 'running') throw new Error(out.message || 'The refresh service did not start a collection.');
+    setStatus('Collecting new sections from NC State. This takes about two minutes. You can keep browsing.');
+    for (let i = 0; i < 40; i++) {
+      await sleep(window.__POLL_MS || 10000);
+      let data;
+      try { const r = await fetch(DATA_URL + '?ts=' + Date.now(), { cache: 'no-store' }); if (!r.ok) continue; data = await r.json(); } catch (e) { continue; }
+      if (data.generated !== before) {
+        ingest(data); drawTerms(); render();
+        setStatus(`New data loaded (collected ${clockOf(generated)}).`);
+        return;
+      }
+    }
+    setStatus('The collection is taking longer than usual. Press Refresh data again in a minute.');
+  } catch (e) {
+    await load(false);
+    setStatus('Could not start a new collection right now. Showing the newest data already published.', true);
+  } finally { btn.disabled = false; btn.textContent = label; }
+}
 
 // Maintainers add #maintainer to the address to see a link to the refresh workflow. Visitors never see it.
 (() => {
@@ -430,6 +477,7 @@ $('reload').addEventListener('click', () => load(true));
   if (m && repo && location.hash === '#maintainer') { $('refreshnow').href = `https://github.com/${m[1]}/${repo}/actions/workflows/refresh.yml`; $('refreshnow').hidden = false; }
 })();
 
+readConfig();
 load(false);
 </script>
 </body>
