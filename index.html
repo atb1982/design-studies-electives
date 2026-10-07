@@ -121,6 +121,31 @@ footer.legal strong{font:700 18px var(--display)}
 .foot summary{cursor:pointer;color:var(--ink);font-weight:600;width:max-content}
 .foot details p{margin-top:6px}
 
+
+/* Course pop-up */
+.name button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;overflow-wrap:anywhere}
+.name button:hover{color:var(--accent);text-decoration-color:var(--accent)}
+.name button:focus-visible,.info .x:focus-visible,.info a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+body:has(dialog[open]){overflow:hidden}
+dialog.info{border:1px solid var(--line);border-top:5px solid var(--accent-fill);border-radius:10px;background:var(--surface);color:var(--ink);padding:0;width:min(660px,calc(100% - 24px));max-height:min(86vh,780px);box-shadow:0 18px 60px rgba(0,0,0,.35);overflow:hidden}
+dialog.info[open]{display:flex;flex-direction:column}
+dialog.info::backdrop{background:rgba(10,12,16,.55)}
+.info .hd{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.info .hd h2{font:700 22px/1.15 var(--display);margin:4px 0 8px;overflow-wrap:anywhere}
+.info .x{font:600 14px var(--font);padding:6px 11px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer;flex:none}
+.info .x:hover{border-color:var(--accent);color:var(--accent)}
+.info .bd{padding:14px 18px 18px;display:grid;gap:14px;overflow:auto;overscroll-behavior:contain}
+.info h3{font-size:13px;color:var(--muted);margin:0 0 4px;font-weight:600}
+.info p{margin:0;line-height:1.55}
+.info .fine{font-size:14px;color:var(--muted)}
+.info ul{margin:0;padding-left:18px;display:grid;gap:2px}
+.info .links{display:flex;flex-wrap:wrap;gap:6px 18px}
+.info a{color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:13px;padding:2px 7px;border-radius:4px;background:var(--tint);color:var(--ink)}
+.chip.warn{background:var(--advise-soft);color:var(--advise);font-weight:500}
+@media (max-width:560px){dialog.info{margin:auto 0 0;width:100%;max-width:none;border-radius:14px 14px 0 0;max-height:88vh}}
+
 @media (max-width:900px){
   .lhead{display:none}
   .sortm{display:flex}
@@ -145,7 +170,7 @@ footer.legal strong{font:700 18px var(--display)}
   <header class="top">
     <div>
       <h1>Design Studies Elective Finder</h1>
-      <p>Design Studies BA electives with current sections, times, rooms and open seats.</p>
+      <p>Design Studies BA electives with current sections, times, rooms and open seats. Select a course title to read its catalog description.</p>
     </div>
     <div class="stamp">
       <span id="stamp">Loading data</span>
@@ -204,6 +229,7 @@ footer.legal strong{font:700 18px var(--display)}
     </details>
     <p>Sources: the <a href="https://catalog.ncsu.edu/undergraduate/design/art-design/design-studies-ba/" target="_blank" rel="noopener">Design Studies (BA) catalog page</a> and <a href="https://webappprd.acs.ncsu.edu/php/coursecat/directory.php" target="_blank" rel="noopener">NC State Class Search</a>.</p>
   </section>
+  <dialog class="info" id="info" aria-labelledby="info-title"></dialog>
   <footer class="legal"><strong>Design Studies Elective Finder</strong><span>An unofficial advising aid. Not an official NC State website.</span></footer>
 </div>
 
@@ -212,9 +238,11 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /* Settings */
-const EMBEDDED = /*EMBED*/null;                                                    // the build script inlines the data here for the artifact copies
+const EMBEDDED = /*EMBED*/null;                                                    
+const EMBEDDED_DETAILS = /*DETAILS*/null;                                          // course descriptions, inlined the same way                                                   // the build script inlines the data here for the artifact copies
 const LIVE_SITE = 'https://atb1982.github.io/design-studies-electives/';           // artifact copies load newer data from the live site
 const DATA_URL = (EMBEDDED ? LIVE_SITE : '') + 'data/electives.json';
+const CATALOG_URL = (EMBEDDED ? LIVE_SITE : '') + 'data/catalog.json';
 const REFRESH_URL = EMBEDDED ? '' : 'https://design-studies-refresh.small-hat-4c1e.workers.dev';   // the refresh relay; empty means the button only reloads published data
 
 let terms = [], rows = [], generated = '';
@@ -355,7 +383,6 @@ function secHTML(s, term) {
   return `<li class="sec"><span class="n">${esc(s.section)} ${esc(s.component)}</span><span class="when">${esc(s.time)}</span><span class="where">${esc(s.location)}</span><span class="who">${esc(s.instructor)}</span><span class="badge ${open ? 'open' : 'closed'}">${esc(label)}</span>${bits.length ? `<span class="note">${esc(bits.join(' · '))}</span>` : ''}</li>`;
 }
 
-let nameHTML = (r) => esc(r.title || 'Title not listed in catalog');   // extras such as the course pop-up replace this
 function courseHTML(r, term) {
   const secs = shownSecs(r);
   const others = terms.filter((t) => t.id !== term.id && r.terms[t.id]);
@@ -363,7 +390,7 @@ function courseHTML(r, term) {
     ? `<div class="also">Also in ${others.map((t) => `<button type="button" data-term="${esc(t.id)}">${esc(t.short)}</button>`).join('')}</div>`
     : (secs ? '' : '<div class="also">No sections posted for any term yet</div>');
   const cats = r.lists.map((l) => `<li${l.startsWith('Advisor approval') ? ' class="warn"' : ''}>${esc(l)}</li>`).join('');
-  return `<article class="course"><div class="id"><div class="code">${esc(r.subj)} <span>${esc(r.num)}${r.credits ? ' · ' + esc(r.credits) + ' cr' : ''}</span></div><div class="name">${nameHTML(r)}</div>${also}</div><div class="cat"><ul>${cats}</ul></div>
+  return `<article class="course"><div class="id"><div class="code">${esc(r.subj)} <span>${esc(r.num)}${r.credits ? ' · ' + esc(r.credits) + ' cr' : ''}</span></div><div class="name"><button type="button" data-info="${esc(r.code)}" aria-haspopup="dialog">${esc(r.title || 'Title not listed in catalog')}</button></div>${also}</div><div class="cat"><ul>${cats}</ul></div>
   <ul class="secs">${secs ? sortSecs(secs).map((s) => secHTML(s, term)).join('') : '<li class="none">Not offered this term</li>'}</ul></article>`;
 }
 
@@ -450,7 +477,43 @@ $('reset').addEventListener('click', () => {
 });
 $('reload').addEventListener('click', () => (REFRESH_URL ? collectNow() : load(true)));
 
-/*EXTRAS*/
+/* Course pop-up: catalog description, prerequisites, typical offering and posted sections.
+   The descriptions load from data/catalog.json the first time a course is opened. */
+let detailsPromise = null;
+const loadDetails = () => detailsPromise || (detailsPromise = (EMBEDDED_DETAILS
+  ? Promise.resolve(EMBEDDED_DETAILS)
+  : fetch(CATALOG_URL).then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))).then((j) => j.courses)).catch(() => null));
+const infoDlg = $('info');
+let infoOpener = null;
+const block = (label, body) => body ? `<div><h3>${esc(label)}</h3>${body}</div>` : '';
+async function openInfo(code, opener) {
+  const r = rows.find((x) => x.code === code); if (!r) return;
+  const all = await loadDetails();                 // null when the file could not be loaded
+  const d = all && all[code];
+  infoOpener = opener || null;
+  const credits = d && d.h ? d.h : (r.credits ? r.credits + ' credit hours' : '');
+  const chips = r.lists.map((l) => `<span class="chip${l.startsWith('Advisor approval') ? ' warn' : ''}">${esc(l)}</span>`).join('');
+  const posted = terms.filter((t) => r.terms[t.id]).map((t) => `<li>${esc(t.label)}: ${r.terms[t.id].length} ${r.terms[t.id].length === 1 ? 'section' : 'sections'}</li>`).join('');
+  const missing = all
+    ? 'The catalog has no entry for this course code. It may have been retired or renumbered, so please confirm with the department.'
+    : 'The catalog description could not be loaded right now. Please try again later or use the catalog link below.';
+  infoDlg.innerHTML =
+    `<div class="hd"><div><div class="code">${esc(r.subj)} <span>${esc(r.num)}${credits ? ' · ' + esc(credits) : ''}</span></div><h2 id="info-title">${esc(r.title || (d && d.t) || code)}</h2><div class="chips">${chips}</div></div><button class="x" type="button" data-close>Close</button></div>` +
+    `<div class="bd">` +
+    (d ? block('Catalog description', `<p>${esc(d.d || 'The catalog gives no description for this course.')}</p>`) : block('Catalog entry', `<p>${missing}</p>`)) +
+    (d && d.p ? block('Prerequisites', `<p>${esc(d.p)}</p>`) : '') +
+    (d && d.co ? block('Corequisites', `<p>${esc(d.co)}</p>`) : '') +
+    (d && d.o ? block('Typically offered', `<p>Typically offered ${esc(d.o)}.</p><p class="fine">This is the catalog's general pattern, not a promise for any one term.</p>`) : '') +
+    (d && d.n && d.n.length ? block('Other catalog notes', `<p>${d.n.map(esc).join('<br>')}</p>`) : '') +
+    block('Sections posted in Class Search', posted ? `<ul>${posted}</ul>` : '<p>No sections are posted for any term yet.</p>') +
+    `<div class="links"><a href="https://catalog.ncsu.edu/search/?P=${encodeURIComponent(code)}" target="_blank" rel="noopener">Open in the NC State catalog</a><a href="https://webappprd.acs.ncsu.edu/php/coursecat/directory.php" target="_blank" rel="noopener">Open NC State Class Search</a></div>` +
+    `</div>`;
+  infoDlg.showModal();
+  infoDlg.querySelector('.bd').scrollTop = 0;
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('button[data-info]'); if (b) openInfo(b.dataset.info, b); });
+infoDlg.addEventListener('click', (e) => { if (e.target === infoDlg || e.target.closest('[data-close]')) infoDlg.close(); });
+infoDlg.addEventListener('close', () => { if (infoOpener && document.contains(infoOpener)) infoOpener.focus(); });
 $('reload').title = REFRESH_URL
   ? 'Collects the newest sections from NC State, which takes about two minutes. The live site also updates itself every morning.'
   : 'Loads the newest data the live site has published. The site updates itself every morning.';

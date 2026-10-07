@@ -93,9 +93,6 @@ class CsvTests(unittest.TestCase):
         self.assertEqual(len(lines) - 1, sections + never)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class SupplementTests(unittest.TestCase):
     @classmethod
@@ -129,3 +126,44 @@ class SupplementTests(unittest.TestCase):
         self.assertTrue(all(s["topic"] for s in secs))
         self.assertIn("Departmental Approval Required", secs[0]["restrictions"])
         self.assertEqual(secs[0]["time"], "W 1:30 PM-4:15 PM")
+
+
+class CatalogDetailTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.ds = C.parse_course_pages((SAMPLES / "catalog-courses-ds.html").read_text(encoding="utf-8"))
+        cls.jp = C.parse_course_pages((SAMPLES / "catalog-courses-flj.html").read_text(encoding="utf-8"))
+
+    def test_description_prerequisite_and_offering(self):
+        d = self.ds["DS 451"]
+        self.assertEqual(d["t"], "Design Writing: Insight and Critique")
+        self.assertEqual(d["h"], "3 credit hours")
+        self.assertTrue(d["d"].startswith("This course will use writing to evaluate"))
+        self.assertEqual(d["p"], "ENG 101 and Sophomore Standing or above.")
+        self.assertEqual(d["o"], "in Fall and Spring")
+        self.assertEqual(d["n"], [])
+
+    def test_prerequisite_label_is_removed(self):
+        self.assertFalse(self.ds["DS 100"]["p"].startswith("Prerequisite"))
+
+    def test_cross_listed_course_is_filed_under_every_code(self):
+        self.assertIn("WLJA 351", self.jp)
+        self.assertIn("ANT 351", self.jp)
+        self.assertEqual(self.jp["WLJA 351"]["t"], "Contemporary Culture in Japan")
+
+    def test_extra_notes_are_kept(self):
+        notes = [n for d in self.jp.values() for n in d["n"]]
+        self.assertTrue(any("GEP" in n for n in notes))
+
+    def test_fresh_file_is_not_collected_again(self):
+        import tempfile
+        from datetime import date
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "catalog.json"
+            path.write_text(json.dumps({"collected": date.today().isoformat(), "checked": ["DS 451"], "courses": {}}))
+            C.get_course_page = lambda subject: self.fail("should not fetch")
+            C.refresh_catalog_details(path, ["DS 451"], ["DS"])    # fresh and complete, so nothing is fetched
+
+
+if __name__ == "__main__":
+    unittest.main()

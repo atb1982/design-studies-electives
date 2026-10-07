@@ -14,6 +14,7 @@ The site is one static page (`index.html`) that reads `data/electives.json`. A G
 ## How the refresh works
 
 - **Every day at 10:17 UTC** (about 6 a.m. Eastern in summer and 5 a.m. in winter), the workflow runs `scripts/collector.py`. It reads the elective lists from the catalog page, asks Class Search for each subject in each posted term, and writes `data/electives.json` and `data/electives.csv`.
+- **Course descriptions.** Once a week, the collector also reads each subject's page in the course catalog and writes `data/catalog.json` (description, credits, prerequisites, corequisites, and when the course is typically offered). Selecting a course title on the page opens these details in a pop-up. If the catalog cannot be read, the previous file is kept and the pop-up shows a short message with a catalog link.
 - The workflow commits the new files and republishes the site. The page shows the time of the latest collection. The daily commit also counts as repository activity, which keeps GitHub from pausing the schedule.
 - If the catalog page or Class Search changes its layout, the collector stops instead of publishing bad data, the workflow shows a red failure, and the site keeps its last good version.
 - Terms are detected automatically. New terms appear once Class Search posts their schedules, and finished terms drop off.

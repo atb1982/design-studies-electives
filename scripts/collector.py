@@ -3,9 +3,10 @@
 
 Usage:  python scripts/collector.py
 Writes data/electives.json and data/electives.csv. The "generated" time is the moment of collection.
+Once a week it also refreshes data/catalog.json, the catalog description of each course.
 
-The parsing functions (parse_catalog, parse_search, candidate_terms, to_csv) do no network
-access, so tests can run them against saved pages.
+The parsing functions (parse_catalog, parse_search, parse_course_pages, candidate_terms, to_csv) do no
+network access, so tests can run them against saved pages.
 """
 import copy
 import csv
@@ -25,6 +26,8 @@ from bs4 import BeautifulSoup
 
 CATALOG_URL = "https://catalog.ncsu.edu/undergraduate/design/art-design/design-studies-ba/"
 SEARCH_URL = "https://webappprd.acs.ncsu.edu/php/coursecat/search.php"
+COURSE_PAGE_URL = "https://catalog.ncsu.edu/course-descriptions/{}/"
+CATALOG_MAX_AGE_DAYS = 7
 HEADERS = {"User-Agent": "design-studies-elective-finder (GitHub Actions, public course data)"}
 CONCURRENCY = 3   # keep the load on NC State's servers small
 PAUSE_SECONDS = 0.15
@@ -41,6 +44,9 @@ LISTS = {
     "History Unit Electives": "History Unit",
     "Advised Electives": "Advised (general)",
 }
+# Catalog course pages are named by the lowercase subject code, except for the world language subjects.
+PAGE_NAME = {"WLAR": "fla", "WLCH": "flc", "WLFR": "flf", "WLGE": "flg", "WLGR": "grk", "WLHU": "fln", "WLIT": "fli",
+             "WLJA": "flj", "WLLA": "lat", "WLPE": "per", "WLPO": "flp", "WLRU": "flr", "WLSP": "fls"}
 DAY = {"Sunday": "Su", "Monday": "M", "Tuesday": "T", "Wednesday": "W", "Thursday": "Th", "Friday": "F", "Saturday": "Sa"}
 
 
@@ -161,6 +167,36 @@ def parse_search(html, wanted=None):
     return out
 
 
+# ---------------------------------------------------------------- catalog course pages
+
+def parse_course_pages(html):
+    """Reads one catalog course page. Returns {'DS 451': {'t': title, 'h': hours, 'd': description,
+    'p': prerequisites, 'co': corequisites, 'o': 'in Fall and Spring', 'n': [other notes]}}.
+    A cross-listed course such as 'ANT 351/WLJA 351' is filed under each of its codes."""
+    out = {}
+    for block in soup_of(html).select(".courseblock"):
+        code, title, hours = (block.select_one(f".detail-{k}") for k in ("coursecode", "title", "hours_html"))
+        if not (code and title):
+            continue
+        d = {"t": squash(title.get_text()), "h": squash(hours.get_text()).strip("()") if hours else "",
+             "d": "", "p": "", "co": "", "o": "", "n": []}
+        for para in block.select("p.courseblockextra"):
+            text = squash(para.get_text())
+            if re.match(r"Prerequisites?\b", text, re.I):
+                d["p"] = re.sub(r"^Prerequisites?\b[:,]?\s*", "", text, flags=re.I)
+            elif re.match(r"Co-?requisites?\b", text, re.I):
+                d["co"] = re.sub(r"^Co-?requisites?\b[:,]?\s*", "", text, flags=re.I)
+            elif text.startswith("Typically offered"):
+                d["o"] = text[len("Typically offered"):].strip()
+            elif text and not d["d"] and "noindent" not in (para.get("class") or []):
+                d["d"] = text
+            elif text:
+                d["n"].append(text)
+        for c in squash(code.get_text()).split("/"):
+            out[c.strip()] = d
+    return out
+
+
 # ---------------------------------------------------------------- terms
 
 def current_term_code(today):
@@ -254,6 +290,41 @@ def get_catalog():
     return retry("catalog", go)
 
 
+def get_course_page(subject):
+    def go():
+        req = urllib.request.Request(COURSE_PAGE_URL.format(PAGE_NAME.get(subject, subject.lower())), headers=HEADERS)
+        with urllib.request.urlopen(req, timeout=60) as r:
+            time.sleep(PAUSE_SECONDS)
+            return r.read().decode("utf-8", "replace")
+    return retry(f"catalog page {subject}", go)
+
+
+def refresh_catalog_details(path, keys, subjects):
+    """Course descriptions change rarely, so data/catalog.json is rebuilt once a week, not every day.
+    A failure here never blocks the daily data: the previous file stays in place."""
+    old = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    age = (date.today() - date.fromisoformat(old["collected"])).days if old.get("collected") else None
+    if age is not None and age < CATALOG_MAX_AGE_DAYS and set(keys) <= set(old.get("checked", [])):
+        print(f"Catalog descriptions are {age} days old; keeping them.")
+        return
+    try:
+        found = {}
+        with ThreadPoolExecutor(max_workers=CONCURRENCY) as pool:
+            for subject, html in zip(subjects, pool.map(get_course_page, subjects)):
+                for code, detail in parse_course_pages(html).items():
+                    if code not in found or code.split(" ")[0] == subject:   # a subject's own page wins over cross-listings
+                        found[code] = detail
+        courses = {k: found[k] for k in keys if k in found}
+        if len(courses) < 300:
+            raise RuntimeError(f"only {len(courses)} descriptions found, so the page layout may have changed")
+    except Exception as e:  # noqa: BLE001 - keep the old file and say why
+        print(f"Catalog descriptions not updated: {e}")
+        return
+    body = {"collected": date.today().isoformat(), "checked": keys, "courses": courses}
+    path.write_text(json.dumps(body, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"Wrote data/catalog.json with {len(courses)} descriptions")
+
+
 def search(term, subject, current_term):
     def go():
         body = urllib.parse.urlencode({"term": term, "subject": subject, "current_strm": current_term}).encode()
@@ -323,6 +394,7 @@ def main():
     (out_dir / "electives.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     (out_dir / "electives.csv").write_text(to_csv(data), encoding="utf-8", newline="")
     print("Wrote data/electives.json and data/electives.csv")
+    refresh_catalog_details(out_dir / "catalog.json", keys, subjects)
 
 
 if __name__ == "__main__":
