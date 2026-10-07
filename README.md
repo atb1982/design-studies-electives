@@ -32,11 +32,11 @@ Under "Filter by day and time" on the page, pick the weekdays you can attend and
 
 `supplement.json` lists courses that are not on the catalog's elective lists but usually count with an advisor's approval (for example DS 492 Special Topics). They are collected like any other course and tagged "Advisor approval (not on catalog list)" in the Elective category column. To add or remove one, edit the list in that file (`code` and `title`) and commit; the site refreshes on the next run. A course that the catalog already lists keeps its catalog tags.
 
-## The Reload data button
+## The Refresh data button
 
-**Reload data** fetches the newest published `data/electives.json` and redraws the list without losing your filters. It does not contact NC State, because browsers block pages from reading Class Search directly.
+**Refresh data** fetches the newest published `data/electives.json` and redraws the list without losing your filters. It does not contact NC State, because browsers block pages from reading Class Search directly. Visitors see only two buttons: Refresh data and Download CSV.
 
-**Refresh from NC State** appears when the site is served from `github.io`. It opens the workflow page, where a maintainer presses **Run workflow** to collect new data right away. The run takes about two minutes. After it finishes, press Reload data. A one-click refresh for every visitor would need a server or a stored access token, which a public static page cannot hold safely, so the button leads to GitHub instead.
+**Collecting new data from NC State right now** is a maintainer task. Open your site with `#maintainer` at the end of the address, for example `https://YOUR-USERNAME.github.io/design-studies-electives/#maintainer`. A link appears under the buttons that opens the workflow page, where you press **Run workflow**. The run takes about two minutes. After it finishes, press Refresh data. A one-click refresh for every visitor would need a server or a stored access token, which a public static page cannot hold safely.
 
 ## Run it on your own computer
 
@@ -53,4 +53,3 @@ python -m http.server 8000           # then open http://localhost:8000
 - The collector makes about 120 requests per run, three at a time, with short pauses. Please keep the schedule at daily or slower.
 - The wildcard entries in the catalog (WL 2xx to 4xx) are not expanded. The specific language courses the catalog lists are included.
 - This is an unofficial convenience tool. Class Search and the catalog are the sources of record, and advisors can confirm restrictions and approvals.
-# design-studies-electives

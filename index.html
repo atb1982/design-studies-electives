@@ -53,7 +53,8 @@ header.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
 .stamp b{color:var(--ink);font-weight:500}
 .tools{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
 .tool{font:inherit;font-family:var(--font-body);font-size:13px;font-weight:600;padding:6px 11px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
-.tool[hidden]{display:none}
+.maint{font-family:var(--font-body);font-size:12px;color:var(--accent)}
+.maint[hidden]{display:none}
 .tool:hover{border-color:var(--accent);color:var(--accent)}
 .tool[disabled]{opacity:.6;cursor:progress}
 .tool:focus-visible,.seg button:focus-visible,.reset:focus-visible,.controls input:focus-visible,.controls select:focus-visible,.also button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -151,16 +152,16 @@ header.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
   <header class="top">
     <div>
       <h1>Design Studies Elective Finder</h1>
-      <p>Every course on the Design Studies BA elective categories, matched to its published sections, meeting times, rooms and instructors.</p>
+      <p>Every course in the Design Studies BA elective categories, matched to its published sections, meeting times, rooms and instructors.</p>
     </div>
     <div class="stamp">
       <span id="stamp">Loading data</span>
       <div class="tools">
-        <button class="tool" id="reload" type="button">Reload data</button>
-        <a class="tool" id="refreshnow" href="#" target="_blank" rel="noopener" hidden title="Opens GitHub Actions. Choose Run workflow to pull new data from NC State now (needs repository write access).">Refresh from NC State</a>
+        <button class="tool" id="reload" type="button">Refresh data</button>
         <a class="tool" id="csv" href="data/electives.csv" download>Download CSV</a>
       </div>
       <span class="status" id="status" role="status"></span>
+      <a class="maint" id="refreshnow" href="#" target="_blank" rel="noopener" hidden>Maintainers: collect new data from NC State now</a>
     </div>
   </header>
 
@@ -207,7 +208,7 @@ header.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
     <span>Courses tagged "Advisor approval" are not on the catalog's elective lists but usually count toward the degree with an advisor's approval. Special topics sections can carry different topics each semester, so check the topic before you plan around one.</span>
     <span>The 500-level courses are the graduate versions of cross-listed courses that the catalog also lists. The catalog's generic world language entries (WL 2xx to 4xx) are covered through the specific language courses it names.</span>
     <span>Sources: the <a href="https://catalog.ncsu.edu/undergraduate/design/art-design/design-studies-ba/" target="_blank" rel="noopener">Design Studies (BA) catalog page</a> and <a href="https://webappprd.acs.ncsu.edu/php/coursecat/directory.php" target="_blank" rel="noopener">NC State Class Search</a>. This is an unofficial convenience tool.</span>
-    <span>The Reload data button shows the newest data this site has published. Refresh from NC State, shown on the GitHub Pages site, opens the Actions page where a maintainer chooses Run workflow to collect new data right away. It takes about two minutes, then Reload data shows it.</span>
+    <span>Refresh data shows the newest data this site has published. The site collects new data from NC State every morning, and the time above shows the latest collection.</span>
   </section>
 </div>
 
@@ -422,11 +423,11 @@ $('days').addEventListener('click', (e) => {
 $('reset').addEventListener('click', () => { $('q').value = ''; $('avail').value = 'offered'; $('cat').value = ''; $('level').value = ''; $('mode').value = ''; $('from').value = ''; $('until').value = ''; dayPick.clear(); document.querySelectorAll('#days button').forEach((b) => b.setAttribute('aria-pressed', 'false')); render(); });
 $('reload').addEventListener('click', () => load(true));
 
-// On GitHub Pages, show the maintainers' link to the refresh workflow.
+// Maintainers add #maintainer to the address to see a link to the refresh workflow. Visitors never see it.
 (() => {
   const m = location.hostname.match(/^([^.]+)\.github\.io$/);
   const repo = location.pathname.split('/').filter(Boolean)[0];
-  if (m && repo) { $('refreshnow').href = `https://github.com/${m[1]}/${repo}/actions/workflows/refresh.yml`; $('refreshnow').hidden = false; }
+  if (m && repo && location.hash === '#maintainer') { $('refreshnow').href = `https://github.com/${m[1]}/${repo}/actions/workflows/refresh.yml`; $('refreshnow').hidden = false; }
 })();
 
 load(false);
