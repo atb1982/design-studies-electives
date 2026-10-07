@@ -45,7 +45,7 @@ class SearchTests(unittest.TestCase):
         cls.found = C.parse_search(html)
 
     def test_sections_for_digital_imaging(self):
-        secs = self.found["ADN 219"]
+        secs = self.found["ADN 219"]["sections"]
         self.assertEqual([s["section"] for s in secs], ["601", "602"])
         first = secs[0]
         self.assertEqual((first["status"], first["left"], first["cap"]), ("Open", 50, 50))
@@ -55,7 +55,7 @@ class SearchTests(unittest.TestCase):
         self.assertIn("DS majors", first["restrictions"])
 
     def test_meeting_days_are_readable(self):
-        times = [s["time"] for secs in self.found.values() for s in secs]
+        times = [s["time"] for course in self.found.values() for s in course["sections"]]
         self.assertFalse([t for t in times if "meets" in t])
         self.assertTrue(any(t[:2] in ("MW", "TT", "M ", "T ", "W ", "F ") or t.startswith("Th") for t in times if t != "TBD"))
 
@@ -89,8 +89,8 @@ class CsvTests(unittest.TestCase):
         lines = text.strip().split("\r\n")
         self.assertTrue(lines[0].lstrip("﻿").startswith('"Course","Title"'))
         sections = sum(len(v) for c in data["courses"] for v in c["terms"].values())
-        empty = sum(1 for c in data["courses"] for t in data["terms"] if not c["terms"].get(t["id"]))
-        self.assertEqual(len(lines) - 1, sections + empty)
+        never = sum(1 for c in data["courses"] if not c["terms"])
+        self.assertEqual(len(lines) - 1, sections + never)
 
 
 if __name__ == "__main__":
@@ -118,13 +118,13 @@ class SupplementTests(unittest.TestCase):
         self.assertNotIn("D 492", added)                 # already a Theory Unit elective
         self.assertNotIn(self.sup["label"], cat["D 492"]["lists"])
 
-    def test_course_info_reads_title_and_credit_range(self):
-        info = C.parse_course_info(self.html)
-        self.assertEqual(info["DS 492"], {"title": "Special Topics in Design Studies", "credits": "1-6"})
-        self.assertEqual(info["DS 451"]["credits"], "3")
+    def test_course_heading_gives_title_and_credit_range(self):
+        found = C.parse_search(self.html)
+        self.assertEqual((found["DS 492"]["title"], found["DS 492"]["credits"]), ("Special Topics in Design Studies", "1-6"))
+        self.assertEqual(found["DS 451"]["credits"], "3")
 
     def test_special_topics_sections_carry_topic_and_restrictions(self):
-        secs = C.parse_search(self.html, {"DS 492"})["DS 492"]
+        secs = C.parse_search(self.html, {"DS 492"})["DS 492"]["sections"]
         self.assertGreaterEqual(len(secs), 2)
         self.assertTrue(all(s["topic"] for s in secs))
         self.assertIn("Departmental Approval Required", secs[0]["restrictions"])

@@ -24,7 +24,6 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 
 CATALOG_URL = "https://catalog.ncsu.edu/undergraduate/design/art-design/design-studies-ba/"
-DIRECTORY_URL = "https://webappprd.acs.ncsu.edu/php/coursecat/directory.php"
 SEARCH_URL = "https://webappprd.acs.ncsu.edu/php/coursecat/search.php"
 HEADERS = {"User-Agent": "design-studies-elective-finder (GitHub Actions, public course data)"}
 CONCURRENCY = 3   # keep the load on NC State's servers small
@@ -40,7 +39,7 @@ LISTS = {
     "Application Unit Electives": "Application Unit",
     "Theory Unit Electives": "Theory Unit",
     "History Unit Electives": "History Unit",
-    "Advised Electives": "Advised (general list)",
+    "Advised Electives": "Advised (general)",
 }
 DAY = {"Sunday": "Su", "Monday": "M", "Tuesday": "T", "Wednesday": "W", "Thursday": "Th", "Friday": "F", "Saturday": "Sa"}
 
@@ -114,17 +113,6 @@ def time_text(el):
     return f"{days} {clock}".strip()
 
 
-def parse_course_info(html):
-    """Returns {'DS 492': {'title', 'credits'}} from the course headings of a Class Search response."""
-    out = {}
-    for sec in soup_of(html).select("section.course"):
-        key = (sec.get("id") or "").replace("-", " ", 1)
-        small, units = sec.select_one("h1 small"), sec.select_one("h1 .units")
-        credits = re.sub(r"\s*-\s*", "-", re.sub(r"^Units:\s*", "", squash(units.get_text()))) if units else ""
-        out[key] = {"title": squash(small.get_text()) if small else "", "credits": credits}
-    return out
-
-
 def parse_availability(text):
     """'Open / 2/18' -> status 'Open', 2 seats left of 18."""
     m = re.match(r"^(.*?)\s*/\s*(\d+)/(\d+)$", text)
@@ -135,13 +123,16 @@ def parse_availability(text):
 
 def parse_search(html, wanted=None):
     """Reads one Class Search response (its 'html' field).
-    Returns {'ADN 219': [section, ...]}; pass `wanted` (a set of course keys) to keep only electives."""
+    Returns {'ADN 219': {'title', 'credits', 'sections': [section, ...]}}.
+    Pass `wanted` (a set of course keys) to keep only electives."""
     soup = soup_of(html)
     out = {}
     for sec in soup.select("section.course"):
         key = (sec.get("id") or "").replace("-", " ", 1)
         if wanted is not None and key not in wanted:
             continue
+        small, units = sec.select_one("h1 small"), sec.select_one("h1 .units")
+        credits = re.sub(r"\s*-\s*", "-", re.sub(r"^Units:\s*", "", squash(units.get_text()))) if units else ""
         sections = []
         for tr in sec.select("table tr"):
             td = tr.find_all("td", recursive=False)
@@ -166,7 +157,7 @@ def parse_search(html, wanted=None):
                 wk = next((x for x in td if x.select_one("ul.weekdisplay")), None)
                 rest = " ".join(cell_text(x) for x in td if x is not wk)
                 sections[-1]["time"] += f" // {time_text(wk) if wk is not None else ''} {rest}".rstrip()
-        out[key] = sections
+        out[key] = {"title": squash(small.get_text()) if small else "", "credits": credits, "sections": sections}
     return out
 
 
@@ -225,22 +216,21 @@ CSV_HEADER = ["Course", "Title", "Credits", "Elective category", "Term", "Offere
 
 
 def to_csv(data):
-    """One row per course, term and section. Courses with no sections get a 'No' row per term."""
+    """One row per course, term and section. A course with no section in any posted term gets a single 'No' row."""
     buf = io.StringIO()
     w = csv.writer(buf, quoting=csv.QUOTE_ALL, lineterminator="\r\n")
     w.writerow(CSV_HEADER)
     for c in data["courses"]:
+        base = [c["code"], c["title"], c["credits"], "; ".join(c["lists"])]
+        if not c["terms"]:
+            w.writerow(base + ["All posted terms", "No"] + [""] * 9)
+            continue
         for t in data["terms"]:
-            secs = c["terms"].get(t["id"])
-            base = [c["code"], c["title"], c["credits"], "; ".join(c["lists"]), t["label"]]
-            if not secs:
-                w.writerow(base + ["No"] + [""] * 9)
-                continue
-            for s in secs:
+            for s in c["terms"].get(t["id"], []):
                 avail = s["status"] if s["left"] is None else f"{s['status']} {s['left']}/{s['cap']}"
-                w.writerow(base + ["Yes", s["section"], s["component"], avail, s["time"], s["location"],
+                w.writerow(base + [t["label"], "Yes", s["section"], s["component"], avail, s["time"], s["location"],
                                    s["instructor"], s["dates"], s["topic"], s["restrictions"]])
-    return "﻿" + buf.getvalue()
+    return "\ufeff" + buf.getvalue()
 
 
 # ---------------------------------------------------------------- network
@@ -302,17 +292,17 @@ def main():
     def work(job):
         term, subject = job
         html = search(term, subject, current)
-        return term, (parse_search(html, wanted), parse_course_info(html)) if html else ({}, {})
+        return term, parse_search(html, wanted) if html else {}
 
     with ThreadPoolExecutor(max_workers=CONCURRENCY) as pool:
-        for term, (parsed, info) in pool.map(work, jobs):
-            for key, sections in parsed.items():
-                found.setdefault(key, {})[term] = sections
-            for key in added & info.keys():   # supplement courses take credits (and a missing title) from Class Search
-                if info[key]["credits"]:
-                    catalog[key]["credits"] = info[key]["credits"]
-                if not catalog[key]["title"]:
-                    catalog[key]["title"] = info[key]["title"]
+        for term, parsed in pool.map(work, jobs):
+            for key, course in parsed.items():
+                found.setdefault(key, {})[term] = course["sections"]
+                if key in added:              # supplement courses take credits (and a missing title) from Class Search
+                    if course["credits"]:
+                        catalog[key]["credits"] = course["credits"]
+                    if not catalog[key]["title"]:
+                        catalog[key]["title"] = course["title"]
 
     # Most common date range per term; the site shows dates only on sections that differ.
     for t in terms:
@@ -327,13 +317,10 @@ def main():
         raise SystemExit("No elective has any posted section. Refusing to overwrite the data.")
     print(f"{offered} of {len(courses)} electives have posted sections")
 
-    body = {"terms": terms, "courses": courses}
+    data = {"generated": datetime.now(timezone.utc).isoformat(timespec="seconds"), "terms": terms, "courses": courses}
     out_dir = Path("data")
     out_dir.mkdir(exist_ok=True)
-    json_path = out_dir / "electives.json"
-    data = {"generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "source": {"catalog": CATALOG_URL, "classSearch": DIRECTORY_URL}, **body}
-    json_path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    (out_dir / "electives.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     (out_dir / "electives.csv").write_text(to_csv(data), encoding="utf-8", newline="")
     print("Wrote data/electives.json and data/electives.csv")
 
