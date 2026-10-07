@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Studies Elective Finder</title>
+<meta name="description" content="Every Design Studies BA elective at NC State, matched to its current sections, meeting times, rooms, instructors and open seats.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f3f4f6;
+  --surface:#ffffff;
+  --ink:#16181d;
+  --muted:#5d636e;
+  --line:#dcdfe5;
+  --accent:#b0001a;
+  --accent-ink:#ffffff;
+  --open:#17663a;
+  --open-soft:#dff2e6;
+  --closed:#8a4b00;
+  --closed-soft:#fbead2;
+  --none:#80858f;
+  --chip:#e9ebef;
+  --font-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --font-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101216;--surface:#181b21;--ink:#eceef2;--muted:#9aa1ad;--line:#2b3039;
+    --accent:#ff5468;--accent-ink:#1a0408;
+    --open:#6fd69a;--open-soft:#14301f;--closed:#f0b25f;--closed-soft:#3a2810;
+    --none:#7b818c;--chip:#242932;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101216;--surface:#181b21;--ink:#eceef2;--muted:#9aa1ad;--line:#2b3039;
+  --accent:#ff5468;--accent-ink:#1a0408;
+  --open:#6fd69a;--open-soft:#14301f;--closed:#f0b25f;--closed-soft:#3a2810;
+  --none:#7b818c;--chip:#242932;color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.45;padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:1180px;margin-inline:auto}
+header.top{padding-block:28px 18px;display:flex;flex-wrap:wrap;gap:12px 32px;align-items:flex-end;justify-content:space-between}
+header.top h1{font-family:var(--font-display);font-weight:800;font-size:clamp(26px,4vw,38px);letter-spacing:-.02em;line-height:1.05;margin:0;text-wrap:balance}
+header.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.stamp{font-family:var(--font-mono);font-size:12px;color:var(--muted);text-align:right;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.stamp b{color:var(--ink);font-weight:500}
+.tools{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.tool{font:inherit;font-family:var(--font-body);font-size:13px;font-weight:600;padding:6px 11px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.tool[hidden]{display:none}
+.tool:hover{border-color:var(--accent);color:var(--accent)}
+.tool[disabled]{opacity:.6;cursor:progress}
+.tool:focus-visible,.seg button:focus-visible,.reset:focus-visible,.controls input:focus-visible,.controls select:focus-visible,.also button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.status{font-family:var(--font-body);font-size:12px;min-height:1.2em;color:var(--muted)}
+.status.err{color:var(--closed)}
+
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding-block:10px;border-block:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-weight:600;padding:7px 12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.seg button small{font-family:var(--font-mono);font-weight:400;color:var(--muted);font-size:11px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.seg button[aria-pressed="true"] small{color:inherit;opacity:.85}
+.controls{display:grid;grid-template-columns:minmax(0,2fr) repeat(4,minmax(0,1fr));gap:8px}
+.controls label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:0}
+.controls input,.controls select{font:inherit;font-size:14px;letter-spacing:0;text-transform:none;font-weight:400;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0;width:100%}
+.tally{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted)}
+.tally b{color:var(--ink);font-variant-numeric:tabular-nums}
+.reset{font:inherit;background:none;border:0;color:var(--accent);cursor:pointer;text-decoration:underline;padding:2px}
+
+.lhead{display:grid;grid-template-columns:minmax(0,3.2fr) minmax(0,1.6fr) minmax(0,7.2fr);gap:10px 24px;padding:9px 16px;background:var(--chip);border-bottom:1px solid var(--line);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+.sh{font:inherit;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:left;display:inline-flex;gap:5px;align-items:center;justify-self:start}
+.sh:hover,.sh[aria-label*="sorted"]{color:var(--ink)}
+.sh:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.sh .arr{font-size:9px;color:var(--accent);min-width:9px}
+.lhead .cols .sh:last-child{justify-self:end;flex-direction:row-reverse}
+.cat ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+.cat li.warn{color:var(--closed);font-weight:600}
+.sortm{display:none;gap:6px;align-items:center}
+.sortm select{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 7px}
+.sortm button{font:inherit;font-size:12px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 9px;cursor:pointer}
+.lhead .cols{display:grid;grid-template-columns:78px minmax(0,1.5fr) minmax(0,1.2fr) minmax(0,1.3fr) 96px;gap:2px 12px}
+.ledger{margin-top:14px;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;background:var(--surface);overflow:hidden}
+.course{display:grid;grid-template-columns:minmax(0,3.2fr) minmax(0,1.6fr) minmax(0,7.2fr);gap:10px 24px;padding:14px 16px;border-top:1px solid var(--line)}
+.course:first-child{border-top:0}
+.id{display:flex;flex-direction:column;gap:5px;min-width:0}
+.code{font-family:var(--font-mono);font-weight:500;font-size:13px;color:var(--accent)}
+.code span{color:var(--muted)}
+.name{font-family:var(--font-display);font-weight:700;font-size:17px;line-height:1.2;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:11px;padding:2px 7px;border-radius:4px;background:var(--chip);color:var(--ink)}
+.chip.warn{background:var(--closed-soft);color:var(--closed)}
+.also{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.also button{font:inherit;font-size:12px;border:1px solid var(--line);background:none;color:var(--ink);border-radius:4px;padding:1px 7px;cursor:pointer}
+.also button:hover{border-color:var(--accent);color:var(--accent)}
+.secs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.sec{display:grid;grid-template-columns:78px minmax(0,1.5fr) minmax(0,1.2fr) minmax(0,1.3fr) 96px;gap:2px 12px;align-items:baseline;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+.sec:last-child{border-bottom:0;padding-bottom:0}
+.sec .n{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.when{font-family:var(--font-mono);font-size:12.5px}
+.where{color:var(--muted);overflow-wrap:anywhere}
+.who{overflow-wrap:anywhere}
+.badge{justify-self:end;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.badge.open{background:var(--open-soft);color:var(--open)}
+.badge.closed{background:var(--closed-soft);color:var(--closed)}
+.note{grid-column:2/-1;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.none{color:var(--none);font-style:italic;padding-top:2px}
+.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+.foot{margin-top:22px;color:var(--muted);font-size:12.5px;display:grid;gap:6px;max-width:92ch}
+.foot a{color:var(--accent)}
+
+.sched{border-top:1px dashed var(--line);padding-top:8px}
+.sched .controls{grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr))}
+.sched .daysfield{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:0}
+.days{display:flex;gap:6px}
+.days button{flex:1;font:inherit;font-size:14px;letter-spacing:0;text-transform:none;font-weight:600;padding:7px 0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer}
+.days button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.days button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+@media (max-width:900px){
+  .lhead{display:none}
+  .sortm{display:flex}
+  .cat ul{flex-direction:row;flex-wrap:wrap;gap:2px 12px}
+  .bar{position:static}
+  .controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .controls label:first-child{grid-column:1/-1}
+  .sched .controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sched .daysfield{grid-column:1/-1}
+  .course{grid-template-columns:minmax(0,1fr)}
+  .stamp{text-align:left;align-items:flex-start}
+  .tools{justify-content:flex-start}
+}
+@media (max-width:560px){
+  .sec{grid-template-columns:minmax(0,1fr) auto}
+  .sec .n{grid-column:1}
+  .sec .badge{grid-column:2;grid-row:1}
+  .sec .when,.sec .where,.sec .who{grid-column:1/-1}
+  .note{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:no-preference){.tool{transition:border-color .15s,color .15s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Design Studies Elective Finder</h1>
+      <p>Every course on the Design Studies BA elective categories, matched to its published sections, meeting times, rooms and instructors.</p>
+    </div>
+    <div class="stamp">
+      <span id="stamp">Loading data</span>
+      <div class="tools">
+        <button class="tool" id="reload" type="button">Reload data</button>
+        <a class="tool" id="refreshnow" href="#" target="_blank" rel="noopener" hidden title="Opens GitHub Actions. Choose Run workflow to pull new data from NC State now (needs repository write access).">Refresh from NC State</a>
+        <a class="tool" id="csv" href="data/electives.csv" download>Download CSV</a>
+      </div>
+      <span class="status" id="status" role="status"></span>
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="seg" id="terms" role="group" aria-label="Term"></div>
+    <div class="controls">
+      <label>Search<input id="q" type="search" placeholder="Course code, title or instructor"></label>
+      <label>Showing<select id="avail">
+        <option value="offered">Offered this term</option>
+        <option value="open">With open seats</option>
+        <option value="not">Not offered this term</option>
+        <option value="all">All listed electives</option>
+      </select></label>
+      <label>Elective category<select id="cat"></select></label>
+      <label>Level<select id="level">
+        <option value="">Any level</option><option value="1">100</option><option value="2">200</option><option value="3">300</option><option value="4">400</option><option value="5">500 (graduate)</option>
+      </select></label>
+      <label>Format<select id="mode">
+        <option value="">Any format</option><option value="online">Online only</option><option value="inperson">In person</option>
+      </select></label>
+    </div>
+    <div class="sched" id="sched">
+      <div class="controls">
+        <div class="daysfield" id="daysfield"><span id="dayslabel">Days I can attend</span>
+          <div class="days" id="days" role="group" aria-labelledby="dayslabel">
+            <button type="button" data-day="M" aria-pressed="false" aria-label="Monday">M</button>
+            <button type="button" data-day="T" aria-pressed="false" aria-label="Tuesday">T</button>
+            <button type="button" data-day="W" aria-pressed="false" aria-label="Wednesday">W</button>
+            <button type="button" data-day="Th" aria-pressed="false" aria-label="Thursday">Th</button>
+            <button type="button" data-day="F" aria-pressed="false" aria-label="Friday">F</button>
+          </div></div>
+        <label>Starts no earlier than<select id="from"></select></label>
+        <label>Ends no later than<select id="until"></select></label>
+      </div>
+    </div>
+    <div class="tally"><span id="tally"></span><span class="sortm"><label for="sortsel">Sort by</label><select id="sortsel"></select><button id="sortdir" type="button" aria-label="Reverse the sort order"></button></span><button class="reset" id="reset" type="button">Clear filters</button></div>
+  </div>
+
+  <main class="ledger" id="ledger" aria-live="polite"></main>
+
+  <section class="foot">
+    <span>Seat counts show seats available out of the section limit. Data is collected from NC State Class Search every morning, so a section can fill after the last update. Restricted sections are often limited to specific majors or need departmental approval, so confirm with an advisor before planning around them.</span>
+    <span>The day and time filters keep only the sections whose meetings all fall on the days you pick and inside the time window. Sections with no set meeting time, such as online or TBD, always fit.</span>
+    <span>Courses tagged "Advisor approval" are not on the catalog's elective lists but usually count toward the degree with an advisor's approval. Special topics sections can carry different topics each semester, so check the topic before you plan around one.</span>
+    <span>The 500-level courses are the graduate versions of cross-listed courses that the catalog also lists. The catalog's generic world language entries (WL 2xx to 4xx) are covered through the specific language courses it names.</span>
+    <span>Sources: the <a href="https://catalog.ncsu.edu/undergraduate/design/art-design/design-studies-ba/" target="_blank" rel="noopener">Design Studies (BA) catalog page</a> and <a href="https://webappprd.acs.ncsu.edu/php/coursecat/directory.php" target="_blank" rel="noopener">NC State Class Search</a>. This is an unofficial convenience tool.</span>
+    <span>The Reload data button shows the newest data this site has published. Refresh from NC State, shown on the GitHub Pages site, opens the Actions page where a maintainer chooses Run workflow to collect new data right away. It takes about two minutes, then Reload data shows it.</span>
+  </section>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const DATA_URL = 'data/electives.json';
+
+let terms = [], rows = [], generated = '', state = { term: '' };
+
+function pickDefaultTerm() {
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = terms.find((t) => t.start && t.start > today);   // the next term to register for
+  return (upcoming || terms[terms.length - 1] || {}).id || '';
+}
+
+function ingest(data) {
+  terms = data.terms;
+  generated = data.generated;
+  rows = data.courses.map((c) => {
+    const [subj, num] = c.code.split(' ');
+    const all = Object.values(c.terms).flat();
+    return { ...c, subj, num, search: (c.code + ' ' + c.title + ' ' + all.map((s) => s.instructor).join(' ')).toLowerCase() };
+  });
+  if (!terms.some((t) => t.id === state.term)) {
+    let saved = '';
+    try { saved = localStorage.getItem('dsef-term') || ''; } catch (e) {}
+    state.term = terms.some((t) => t.id === saved) ? saved : pickDefaultTerm();
+  }
+  const keep = $('cat').value;
+  const lists = [...new Set(rows.flatMap((r) => r.lists))].sort();
+  $('cat').innerHTML = '<option value="">All categories</option>' + lists.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+  if (lists.includes(keep)) $('cat').value = keep;
+  const when = new Date(generated);
+  $('stamp').innerHTML = isNaN(when) ? 'Data loaded' : `Data collected <b>${when.toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}</b>`;
+}
+
+function drawTerms() {
+  $('terms').innerHTML = terms.map((t) => `<button type="button" data-term="${esc(t.id)}" aria-pressed="${t.id === state.term}">${esc(t.label)} <small>${rows.filter((r) => r.terms[t.id]).length} courses</small></button>`).join('');
+}
+const isOnline = (s) => /online/i.test(s.location);
+
+
+/* Day and time filters. Meeting times look like 'TTh 1:30 PM-2:45 PM'; extra meetings are joined with ' // '. */
+const clockLabel = (min) => { const h = Math.floor(min / 60); return (h % 12 || 12) + ':00 ' + (h < 12 ? 'AM' : 'PM'); };
+$('from').innerHTML = '<option value="">Any time</option>' + [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((h) => `<option value="${h * 60}">${clockLabel(h * 60)}</option>`).join('');
+$('until').innerHTML = '<option value="">Any time</option>' + [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21].map((h) => `<option value="${h * 60}">${clockLabel(h * 60)}</option>`).join('');
+const dayPick = new Set();
+function meetings(s) {
+  if (s._m) return s._m;
+  const clock = (h, m, ap) => ((+h % 12) + (ap === 'PM' ? 12 : 0)) * 60 + +m;
+  const out = [];
+  for (const part of String(s.time || '').split('//')) {
+    const m = /^\s*([A-Za-z]+)\s+(\d{1,2}):(\d{2})\s*([AP]M)\s*-\s*(\d{1,2}):(\d{2})\s*([AP]M)/.exec(part);
+    if (m) out.push({ days: m[1].match(/Th|Sa|Su|M|T|W|F/g) || [], start: clock(m[2], m[3], m[4]), end: clock(m[5], m[6], m[7]) });
+  }
+  return (s._m = out);
+}
+const scheduleActive = () => dayPick.size > 0 || $('from').value !== '' || $('until').value !== '';
+function fits(s) {
+  const ms = meetings(s);
+  if (!ms.length) return true;
+  const from = $('from').value, until = $('until').value;
+  return ms.every((m) => (!dayPick.size || m.days.every((d) => dayPick.has(d))) && (from === '' || m.start >= +from) && (until === '' || m.end <= +until));
+}
+/* Sections to show for a course in the chosen term, or null when none fit the filters. */
+function shownSecs(r) {
+  const all = r.terms[state.term];
+  if (!all || !scheduleActive()) return all;
+  const f = all.filter(fits);
+  return f.length ? f : null;
+}
+
+const ACC = { section: (s) => s.section + ' ' + s.component, loc: (s) => s.location, instr: (s) => s.instructor };
+const catsOf = (r) => r.lists;
+
+/* Sorting. A heading click sorts the list; section columns also order the sections inside each course. */
+const SORTS = [['course', 'Course'], ['cat', 'Elective category'], ['section', 'Section'], ['time', 'Days and time'], ['loc', 'Location'], ['instr', 'Instructor'], ['seats', 'Seats']];
+const sort = { key: 'course', dir: 1 };
+const DAYIDX = { M: 0, T: 1, W: 2, Th: 3, F: 4, Sa: 5, Su: 6 };
+const blank = (v) => v === null || v === undefined || v === '';
+function cmp(a, b) {                         // blanks always go last, in either direction
+  if (blank(a) || blank(b)) return blank(a) - blank(b);
+  const r = typeof a === 'number' ? a - b : String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+  return r * sort.dir;
+}
+function secValue(key, s) {
+  if (!s) return null;
+  if (key === 'section') return ACC.section(s);
+  if (key === 'loc') return ACC.loc(s);
+  if (key === 'instr') return ACC.instr(s);
+  if (key === 'seats') return s.left;
+  if (key === 'time') { const m = meetings(s)[0]; return m && m.days.length ? Math.min(...m.days.map((d) => DAYIDX[d] ?? 9)) * 1440 + m.start : null; }
+  return null;
+}
+const courseAsc = (a, b) => a.subj.localeCompare(b.subj) || (+a.num - +b.num);
+function sortSecs(secs) {
+  if (!secs || sort.key === 'course' || sort.key === 'cat') return secs;
+  return [...secs].sort((x, y) => cmp(secValue(sort.key, x), secValue(sort.key, y)));
+}
+function compareCourses(a, b) {
+  if (sort.key === 'course') return courseAsc(a, b) * sort.dir;
+  if (sort.key === 'cat') return cmp(catsOf(a).join('; '), catsOf(b).join('; ')) || courseAsc(a, b);
+  const va = secValue(sort.key, (sortSecs(shownSecs(a)) || [])[0]);
+  const vb = secValue(sort.key, (sortSecs(shownSecs(b)) || [])[0]);
+  return cmp(va, vb) || courseAsc(a, b);
+}
+function headHTML() {
+  const b = (k, label) => {
+    const on = sort.key === k;
+    const state = on ? (sort.dir > 0 ? ', sorted ascending' : ', sorted descending') : '';
+    return `<button type="button" class="sh" data-sort="${k}" aria-label="${label}${state}. Activate to sort${on ? ' in the other direction' : ''}." title="Sort by ${label.toLowerCase()}">${label}<span class="arr" aria-hidden="true">${on ? (sort.dir > 0 ? '▲' : '▼') : ''}</span></button>`;
+  };
+  return `<div class="lhead">${b('course', 'Course')}${b('cat', 'Elective category')}<div class="cols">${b('section', 'Section')}${b('time', 'Days and time')}${b('loc', 'Location')}${b('instr', 'Instructor')}${b('seats', 'Seats')}</div></div>`;
+}
+function catsHTML(r) {
+  return `<div class="cat"><ul>${catsOf(r).map((l) => `<li${l.startsWith('Advisor approval') ? ' class="warn"' : ''}>${esc(l)}</li>`).join('')}</ul></div>`;
+}
+function syncSortUI() {
+  $('sortsel').value = sort.key;
+  $('sortdir').textContent = sort.dir > 0 ? '▲ Ascending' : '▼ Descending';
+}
+function setSort(key) {
+  if (sort.key === key) sort.dir = -sort.dir; else { sort.key = key; sort.dir = 1; }
+  render();
+  const btn = document.querySelector(`.lhead [data-sort="${key}"]`); if (btn) btn.focus();
+}
+$('sortsel').innerHTML = SORTS.map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
+$('sortsel').addEventListener('input', () => { sort.key = $('sortsel').value; render(); });
+$('sortdir').addEventListener('click', () => { sort.dir = -sort.dir; render(); });
+document.addEventListener('click', (e) => { const b = e.target.closest('.lhead [data-sort]'); if (b) setSort(b.dataset.sort); });
+
+function matches(r) {
+  const q = $('q').value.trim().toLowerCase();
+  if (q && !q.split(/\s+/).every((w) => r.search.includes(w))) return false;
+  const c = $('cat').value; if (c && !r.lists.includes(c)) return false;
+  const lv = $('level').value; if (lv && (lv === '5' ? +r.num[0] < 5 : r.num[0] !== lv)) return false;
+  const secs = shownSecs(r);
+  const a = $('avail').value;
+  if (scheduleActive() && a !== 'not' && !secs) return false;
+  if (a === 'offered' && !secs) return false;
+  if (a === 'open' && !(secs && secs.some((s) => s.status === 'Open'))) return false;
+  if (a === 'not' && r.terms[state.term]) return false;
+  const m = $('mode').value;
+  if (m && !(secs && secs.some((s) => (m === 'online' ? isOnline(s) : !isOnline(s))))) return false;
+  return true;
+}
+
+function secHTML(s, term) {
+  const badge = s.left === null
+    ? `<span class="badge closed">${esc(s.status)}</span>`
+    : `<span class="badge ${s.status === 'Open' ? 'open' : 'closed'}">${esc(s.status)} · ${s.left}/${s.cap}</span>`;
+  const bits = [];
+  if (s.topic) bits.push('Topic: ' + s.topic);
+  if (s.dates && s.dates !== term.dates) bits.push('Dates: ' + s.dates);
+  if (s.restrictions) bits.push(s.restrictions);
+  return `<li class="sec"><span class="n">${esc(s.section)} ${esc(s.component)}</span><span class="when">${esc(s.time)}</span><span class="where">${esc(s.location)}</span><span class="who">${esc(s.instructor)}</span>${badge}${bits.length ? `<span class="note">${esc(bits.join(' · '))}</span>` : ''}</li>`;
+}
+
+function courseHTML(r, term) {
+  const secs = shownSecs(r);
+  const others = terms.filter((t) => t.id !== term.id && r.terms[t.id]);
+  const also = others.length
+    ? `<div class="also">Also in ${others.map((t) => `<button type="button" data-term="${esc(t.id)}">${esc(t.short)}</button>`).join('')}</div>`
+    : (secs ? '' : '<div class="also">No sections posted for any term yet</div>');
+  return `<article class="course"><div class="id"><div class="code">${esc(r.subj)} <span>${esc(r.num)}${r.credits ? ' · ' + esc(r.credits) + ' cr' : ''}</span></div><div class="name">${esc(r.title || 'Title not listed in catalog')}</div>${also}</div>${catsHTML(r)}
+  <ul class="secs">${secs ? sortSecs(secs).map((s) => secHTML(s, term)).join('') : '<li class="none">Not offered this term</li>'}</ul></article>`;
+}
+
+function render() {
+  const term = terms.find((t) => t.id === state.term);
+  if (!term) { $('ledger').innerHTML = '<div class="empty">No term data available yet.</div>'; return; }
+  const list = rows.filter(matches).sort(compareCourses);
+  syncSortUI();
+  const nSecs = list.reduce((n, r) => n + (shownSecs(r) || []).length, 0);
+  $('tally').innerHTML = `<b>${list.length}</b> ${list.length === 1 ? 'course' : 'courses'} · <b>${nSecs}</b> ${nSecs === 1 ? 'section' : 'sections'} · ${esc(term.label)}${scheduleActive() ? ' · day and time filters on' : ''}`;
+  $('ledger').innerHTML = list.length ? headHTML() + list.map((r) => courseHTML(r, term)).join('') : '<div class="empty">No electives match these filters for this term. Try Clear filters, or switch the term.</div>';
+}
+
+function setStatus(msg, isError) { $('status').textContent = msg; $('status').className = 'status' + (isError ? ' err' : ''); }
+
+async function load(manual) {
+  const btn = $('reload');
+  btn.disabled = true; setStatus(manual ? 'Checking for new data' : '');
+  try {
+    const r = await fetch(DATA_URL + '?ts=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const changed = data.generated !== generated;
+    ingest(data); drawTerms(); render();
+    if (manual) setStatus(changed ? 'New data loaded.' : 'Already showing the latest data.');
+  } catch (e) {
+    setStatus(rows.length ? 'Could not reload. Showing the data already loaded.' : 'Could not load ' + DATA_URL + '. If you opened this file directly, publish it with GitHub Pages or serve the folder over http.', true);
+  } finally { btn.disabled = false; }
+}
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-term]');
+  if (!b) return;
+  state.term = b.dataset.term;
+  try { localStorage.setItem('dsef-term', state.term); } catch (err) {}
+  drawTerms(); render();
+  if (b.closest('.also')) window.scrollTo({ top: 0 });
+});
+['q', 'avail', 'cat', 'level', 'mode', 'from', 'until'].forEach((id) => $(id).addEventListener('input', render));
+$('days').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-day]'); if (!b) return;
+  const on = !dayPick.has(b.dataset.day);
+  on ? dayPick.add(b.dataset.day) : dayPick.delete(b.dataset.day);
+  b.setAttribute('aria-pressed', on); render();
+});
+$('reset').addEventListener('click', () => { $('q').value = ''; $('avail').value = 'offered'; $('cat').value = ''; $('level').value = ''; $('mode').value = ''; $('from').value = ''; $('until').value = ''; dayPick.clear(); document.querySelectorAll('#days button').forEach((b) => b.setAttribute('aria-pressed', 'false')); render(); });
+$('reload').addEventListener('click', () => load(true));
+
+// On GitHub Pages, show the maintainers' link to the refresh workflow.
+(() => {
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  const repo = location.pathname.split('/').filter(Boolean)[0];
+  if (m && repo) { $('refreshnow').href = `https://github.com/${m[1]}/${repo}/actions/workflows/refresh.yml`; $('refreshnow').hidden = false; }
+})();
+
+load(false);
+</script>
+</body>
+</html>

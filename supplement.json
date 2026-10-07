@@ -1,0 +1,29 @@
+{
+  "label": "Advisor approval (not on catalog list)",
+  "courses": [
+    {
+      "code": "DS 292",
+      "title": "Special Topics in Design Studies"
+    },
+    {
+      "code": "DS 451",
+      "title": "Design Writing: Insight and Critique"
+    },
+    {
+      "code": "DS 492",
+      "title": "Special Topics in Design Studies"
+    },
+    {
+      "code": "D 231",
+      "title": "Design History for Engineers and Scientists"
+    },
+    {
+      "code": "D 292",
+      "title": "Special Topics in Design"
+    },
+    {
+      "code": "D 492",
+      "title": "Special Topics in Design"
+    }
+  ]
+}
