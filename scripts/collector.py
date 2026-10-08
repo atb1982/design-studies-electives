@@ -3,7 +3,8 @@
 
 Usage:  python scripts/collector.py
 Writes data/electives.json and data/electives.csv. The "generated" time is the moment of collection.
-Once a week it also refreshes data/catalog.json, the catalog description of each course.
+Each run also adds one day of seat counts to data/history.json (the last two weeks are kept), which the
+page uses for its seat trends. Once a week it refreshes data/catalog.json, the catalog description of each course.
 
 The parsing functions (parse_catalog, parse_search, parse_course_pages, candidate_terms, to_csv) do no
 network access, so tests can run them against saved pages.
@@ -28,6 +29,7 @@ CATALOG_URL = "https://catalog.ncsu.edu/undergraduate/design/art-design/design-s
 SEARCH_URL = "https://webappprd.acs.ncsu.edu/php/coursecat/search.php"
 COURSE_PAGE_URL = "https://catalog.ncsu.edu/course-descriptions/{}/"
 CATALOG_MAX_AGE_DAYS = 7
+HISTORY_DAYS = 14   # days of seat counts kept in data/history.json
 HEADERS = {"User-Agent": "design-studies-elective-finder (GitHub Actions, public course data)"}
 CONCURRENCY = 3   # keep the load on NC State's servers small
 PAUSE_SECONDS = 0.15
@@ -150,6 +152,7 @@ def parse_search(html, wanted=None):
                 sections.append({
                     "section": cell_text(td[0]),
                     "component": cell_text(td[1]),
+                    "cls": cell_text(td[2]),   # the class number students use to register
                     **parse_availability(cell_text(td[3])),
                     "time": time_text(td[4]),
                     "location": cell_text(td[5]),
@@ -247,7 +250,7 @@ def merge_supplement(catalog, supplement):
 
 # ---------------------------------------------------------------- output
 
-CSV_HEADER = ["Course", "Title", "Credits", "Elective category", "Term", "Offered", "Section", "Component",
+CSV_HEADER = ["Course", "Title", "Credits", "Elective category", "Term", "Offered", "Class number", "Section", "Component",
               "Availability (open/limit)", "Days and time", "Location", "Instructor", "Dates", "Topic", "Restrictions"]
 
 
@@ -259,14 +262,44 @@ def to_csv(data):
     for c in data["courses"]:
         base = [c["code"], c["title"], c["credits"], "; ".join(c["lists"])]
         if not c["terms"]:
-            w.writerow(base + ["All posted terms", "No"] + [""] * 9)
+            w.writerow(base + ["All posted terms", "No"] + [""] * 10)
             continue
         for t in data["terms"]:
             for s in c["terms"].get(t["id"], []):
                 avail = s["status"] if s["left"] is None else f"{s['status']} {s['left']}/{s['cap']}"
-                w.writerow(base + [t["label"], "Yes", s["section"], s["component"], avail, s["time"], s["location"],
+                w.writerow(base + [t["label"], "Yes", s.get("cls", ""), s["section"], s["component"], avail, s["time"], s["location"],
                                    s["instructor"], s["dates"], s["topic"], s["restrictions"]])
     return "\ufeff" + buf.getvalue()
+
+
+# ---------------------------------------------------------------- seat history
+
+def seat_snapshot(courses):
+    """{class number: seats open} for every section. A section that is not open counts as 0."""
+    snap = {}
+    for c in courses:
+        for sections in c["terms"].values():
+            for s in sections:
+                if not s.get("cls"):
+                    continue
+                if s["status"] != "Open":
+                    snap[s["cls"]] = 0
+                elif s["left"] is not None:
+                    snap[s["cls"]] = s["left"]
+    return snap
+
+
+def update_history(path, courses, today):
+    """Adds today's seat counts to data/history.json, replaces an earlier run from the same day, and
+    keeps the newest HISTORY_DAYS days. A damaged file is started again rather than stopping the run."""
+    try:
+        old = json.loads(path.read_text(encoding="utf-8")).get("snapshots", {}) if path.exists() else {}
+    except (ValueError, AttributeError):
+        old = {}
+    old[today] = seat_snapshot(courses)
+    kept = dict(sorted(old.items())[-HISTORY_DAYS:])
+    path.write_text(json.dumps({"snapshots": kept}, separators=(",", ":")), encoding="utf-8")
+    return len(kept)
 
 
 # ---------------------------------------------------------------- network
@@ -394,6 +427,11 @@ def main():
     (out_dir / "electives.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     (out_dir / "electives.csv").write_text(to_csv(data), encoding="utf-8", newline="")
     print("Wrote data/electives.json and data/electives.csv")
+    try:
+        days = update_history(out_dir / "history.json", courses, data["generated"][:10])
+        print(f"Updated data/history.json ({days} days of seat counts)")
+    except OSError as e:
+        print(f"Seat history not updated: {e}")
     refresh_catalog_details(out_dir / "catalog.json", keys, subjects)
 
 

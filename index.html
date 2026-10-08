@@ -13,6 +13,11 @@
 /* NC State brand: Wolfpack Red #CC0000, Reynolds Red #990000, Hunt Yellow #FFD100, Carmichael Aqua #008473, Bio-Indigo #4156A1. Type: Roboto and Roboto Condensed. */
 :root{
   color-scheme:light;
+  --c-gen-bg:#e9e9e9;--c-gen-ink:#262626;--c-wl-bg:#d3eeea;--c-wl-ink:#00473e;--c-hist-bg:#f8dcdc;--c-hist-ink:#7a0000;
+  --c-hum-bg:#e1e6f4;--c-hum-ink:#2b3a73;--c-app-bg:#fff0b0;--c-app-ink:#4d3d00;--c-wri-bg:#eadff3;--c-wri-ink:#4b2a70;
+  --c-theo-bg:#fde2cc;--c-theo-ink:#6e3300;--c-surv-bg:#f7dbe8;--c-surv-ink:#70183f;--c-dh-bg:#dbeed2;--c-dh-ink:#285012;
+  --c-adv-bg:#fff;--c-adv-ink:#2b3a73;
+  --seat-ok:#1e8a3c;--seat-low:#e0a800;--seat-none:#cc0000;
   --bg:#f4f4f4;--surface:#fff;--ink:#111;--muted:#4a4a4a;--line:#d4d4d4;--tint:#e9e9e9;
   --accent:#cc0000;--accent-fill:#cc0000;--band:#cc0000;--on-red:#fff;
   --open-bg:#008473;--open-ink:#fff;--closed-bg:#ffd100;--closed-ink:#000;
@@ -28,6 +33,11 @@
     --bg:#121212;--surface:#1c1c1c;--ink:#f2f2f2;--muted:#b8b8b8;--line:#3a3a3a;--tint:#2a2a2a;
     --accent:#ff7b7b;--band:#990000;
     --open-bg:#5fd4c3;--open-ink:#00201b;
+    --c-gen-bg:#333;--c-gen-ink:#e6e6e6;--c-wl-bg:#0d3d37;--c-wl-ink:#9ee8dc;--c-hist-bg:#4a1717;--c-hist-ink:#ffb3b3;
+    --c-hum-bg:#262c45;--c-hum-ink:#c3cdf5;--c-app-bg:#4a3f00;--c-app-ink:#ffe680;--c-wri-bg:#3a2850;--c-wri-ink:#dcc6f5;
+    --c-theo-bg:#4d2a10;--c-theo-ink:#ffcfa3;--c-surv-bg:#4a1e35;--c-surv-ink:#ffc2dc;--c-dh-bg:#233d17;--c-dh-ink:#bfe8a8;
+    --c-adv-bg:#1c1c1c;--c-adv-ink:#c3cdf5;
+    --seat-ok:#4cc46c;--seat-low:#ffd100;--seat-none:#ff6b6b;
     --advise:#aebcf2;--advise-soft:#262c45;
   }
 }
@@ -36,6 +46,11 @@
   --bg:#121212;--surface:#1c1c1c;--ink:#f2f2f2;--muted:#b8b8b8;--line:#3a3a3a;--tint:#2a2a2a;
   --accent:#ff7b7b;--band:#990000;
   --open-bg:#5fd4c3;--open-ink:#00201b;
+  --c-gen-bg:#333;--c-gen-ink:#e6e6e6;--c-wl-bg:#0d3d37;--c-wl-ink:#9ee8dc;--c-hist-bg:#4a1717;--c-hist-ink:#ffb3b3;
+  --c-hum-bg:#262c45;--c-hum-ink:#c3cdf5;--c-app-bg:#4a3f00;--c-app-ink:#ffe680;--c-wri-bg:#3a2850;--c-wri-ink:#dcc6f5;
+  --c-theo-bg:#4d2a10;--c-theo-ink:#ffcfa3;--c-surv-bg:#4a1e35;--c-surv-ink:#ffc2dc;--c-dh-bg:#233d17;--c-dh-ink:#bfe8a8;
+  --c-adv-bg:#1c1c1c;--c-adv-ink:#c3cdf5;
+  --seat-ok:#4cc46c;--seat-low:#ffd100;--seat-none:#ff6b6b;
   --advise:#aebcf2;--advise-soft:#262c45;
 }
 *{box-sizing:border-box}
@@ -99,8 +114,18 @@ footer.legal strong{font:700 18px var(--display)}
 .also{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
 .also button{font-size:13px;background:none;border-radius:4px;padding:1px 7px}
 .also button:hover{border-color:var(--accent);color:var(--accent)}
-.cat ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--muted)}
-.cat li.warn{color:var(--advise);font-weight:700}
+.cat ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.pill,.chip{display:inline-block;font-size:13px;font-weight:500;line-height:1.3;padding:2px 10px;border-radius:99px;background:var(--bg-c,var(--c-gen-bg));color:var(--ink-c,var(--c-gen-ink));border:1px solid transparent}
+.pill.c-advised{--bg-c:var(--c-gen-bg);--ink-c:var(--c-gen-ink)}
+.pill.c-world-language,.chip.c-world-language{--bg-c:var(--c-wl-bg);--ink-c:var(--c-wl-ink)}
+.pill.c-history-unit,.chip.c-history-unit{--bg-c:var(--c-hist-bg);--ink-c:var(--c-hist-ink)}
+.pill.c-humanities,.chip.c-humanities{--bg-c:var(--c-hum-bg);--ink-c:var(--c-hum-ink)}
+.pill.c-application-unit,.chip.c-application-unit{--bg-c:var(--c-app-bg);--ink-c:var(--c-app-ink)}
+.pill.c-advanced-writing,.chip.c-advanced-writing{--bg-c:var(--c-wri-bg);--ink-c:var(--c-wri-ink)}
+.pill.c-theory-unit,.chip.c-theory-unit{--bg-c:var(--c-theo-bg);--ink-c:var(--c-theo-ink)}
+.pill.c-art-history-survey,.chip.c-art-history-survey{--bg-c:var(--c-surv-bg);--ink-c:var(--c-surv-ink)}
+.pill.c-design-history,.chip.c-design-history{--bg-c:var(--c-dh-bg);--ink-c:var(--c-dh-ink)}
+.pill.c-advisor-approval,.chip.c-advisor-approval{--bg-c:var(--c-adv-bg);--ink-c:var(--c-adv-ink);border:1px dashed var(--c-adv-ink);font-weight:700}
 .secs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
 .sec{align-items:baseline;padding-bottom:8px;border-bottom:1px dashed var(--line)}
 .sec:last-child{border-bottom:0;padding-bottom:0}
@@ -108,9 +133,13 @@ footer.legal strong{font:700 18px var(--display)}
 .when{font-size:14px}
 .where{color:var(--muted);overflow-wrap:anywhere}
 .who{overflow-wrap:anywhere}
-.badge{justify-self:end;font-size:14px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap}
-.badge.open{background:var(--open-bg);color:var(--open-ink)}
-.badge.closed{background:var(--closed-bg);color:var(--closed-ink)}
+.seats{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:700;white-space:nowrap}
+.seats::before{content:"";flex:none;width:11px;height:11px;border-radius:50%;background:var(--dot)}
+.seats.ok{--dot:var(--seat-ok)}.seats.low{--dot:var(--seat-low)}.seats.full{--dot:var(--seat-none)}
+.key{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;font-size:13px;color:var(--muted)}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key span::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--dot)}
+.key .ok{--dot:var(--seat-ok)}.key .low{--dot:var(--seat-low)}.key .full{--dot:var(--seat-none)}
 .note{grid-column:2/-1;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 .none{color:var(--muted);font-style:italic;padding-top:2px}
 .empty{padding:36px 16px;text-align:center;color:var(--muted)}
@@ -142,14 +171,12 @@ dialog.info::backdrop{background:rgba(10,12,16,.55)}
 .info .links{display:flex;flex-wrap:wrap;gap:6px 18px}
 .info a{color:var(--accent)}
 .chips{display:flex;flex-wrap:wrap;gap:4px}
-.chip{font-size:13px;padding:2px 7px;border-radius:4px;background:var(--tint);color:var(--ink)}
-.chip.warn{background:var(--advise-soft);color:var(--advise);font-weight:500}
 @media (max-width:560px){dialog.info{margin:auto 0 0;width:100%;max-width:none;border-radius:14px 14px 0 0;max-height:88vh}}
 
 @media (max-width:900px){
   .lhead{display:none}
   .sortm{display:flex}
-  .cat ul{flex-direction:row;flex-wrap:wrap;gap:2px 12px}
+  .cat ul{flex-direction:row;flex-wrap:wrap;gap:4px 6px}
   .bar{position:static}
   .controls,.sched .controls{grid-template-columns:repeat(2,minmax(0,1fr))}
   .controls label:first-child,.sched .daysfield{grid-column:1/-1}
@@ -159,10 +186,68 @@ dialog.info::backdrop{background:rgba(10,12,16,.55)}
 }
 @media (max-width:560px){
   .sec{grid-template-columns:minmax(0,1fr) auto}
-  .sec .badge{grid-column:2;grid-row:1}
+  
   .sec .when,.sec .where,.sec .who,.note{grid-column:1/-1}
 }
 @media (prefers-reduced-motion:no-preference){.tool{transition:background .15s,color .15s}}
+
+:root{--sec-cols:78px minmax(0,1.5fr) minmax(0,1.2fr) minmax(0,1.3fr) 160px}
+mark{background:var(--c-app-bg);color:inherit;border-radius:2px;padding:0 1px}
+.snip{font-size:13px;color:var(--muted);line-height:1.4}
+.n{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.cls,.add{font:inherit;cursor:pointer}
+.cls{font-size:12px;padding:0 6px;border:1px dashed var(--muted);border-radius:4px;background:none;color:var(--muted)}
+.cls:hover,.cls:focus-visible{border-color:var(--accent);color:var(--accent)}
+.seatcell{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right}
+.seatcell .seats{justify-self:auto}
+.bar #linkmsg:empty{display:none}
+.trend{font-size:12px;color:var(--muted);line-height:1.25}
+.trend.fast{color:var(--ink);font-weight:700}
+.add{font-size:12px;font-weight:600;padding:2px 9px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--ink)}
+.add:hover{border-color:var(--accent);color:var(--accent)}
+.add[aria-pressed="true"]{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--on-red)}
+.add:focus-visible,.cls:focus-visible,.planbar:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.planbar{position:fixed;right:16px;bottom:16px;z-index:8;font:600 15px var(--font);padding:11px 18px;border:0;border-radius:99px;background:var(--accent-fill);color:var(--on-red);box-shadow:0 6px 24px rgba(0,0,0,.3);cursor:pointer}
+.planbar:hover{filter:brightness(1.08)}
+dialog.plan{width:min(960px,calc(100% - 24px));max-height:min(94vh,900px)}
+.plan .bd{gap:14px}
+.plan .form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:10px}
+.plan label{display:flex;flex-direction:column;gap:3px;font-size:13px;font-weight:600;color:var(--muted)}
+.plan input,.plan textarea{font:inherit;font-size:15px;font-weight:400;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%}
+.plan textarea{min-height:56px;resize:vertical}
+.plan .acts{display:flex;flex-wrap:wrap;gap:8px}
+.plan .acts button{font:600 14px var(--font);padding:7px 13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer}
+.plan .acts .primary{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--on-red)}
+.plan .acts button:hover{border-color:var(--accent)}
+.doc h2{font:700 22px/1.15 var(--display);margin:0 0 4px}
+.doc .meta{font-size:14px;color:var(--muted);margin:0 0 10px}
+.doc h3{font:700 17px var(--display);margin:14px 0 6px;color:var(--ink)}
+.doc .scroll{overflow-x:auto}
+.doc table{width:100%;border-collapse:collapse;font-size:14px}
+.doc th,.doc td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.doc th{font-size:12px;color:var(--muted);font-weight:600;background:var(--tint)}
+.doc td.t{font-weight:700}
+.doc .tot{margin:6px 0 0;font-size:14px;font-weight:600}
+.doc .warn{margin:6px 0 0;padding:6px 10px;border-radius:6px;background:var(--c-app-bg);color:var(--c-app-ink);font-size:14px}
+.doc .fine{font-size:13px;color:var(--muted);margin-top:12px}
+.doc .sub{font-size:12px;color:var(--muted)}
+.doc .nt{margin:12px 0 0;font-size:14px;white-space:pre-wrap}
+.planempty{color:var(--muted);font-style:italic}
+#printarea{display:none}
+@media print{
+  html,body{background:#fff!important;color:#000!important;padding:0!important;overflow:visible!important;height:auto!important}
+  .wrap,.planbar,dialog{display:none!important}
+  #printarea{display:block!important;color:#000}
+  #printarea .doc{--ink:#000;--muted:#333;--line:#999;--tint:#eee;--c-app-bg:#ffe98a;--c-app-ink:#000;color:#000}
+  #printarea .doc th{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printarea .doc table{font-size:11px}
+  #printarea .doc .warn{background:#ffe98a!important;border:1px solid #b38f00;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (max-width:900px){.plan .form{grid-template-columns:1fr}}
+@media (max-width:560px){.sec .seatcell{grid-column:2;grid-row:1}.sec .n{flex-direction:row;align-items:center;gap:8px}.planbar{left:16px;right:16px}}
+.qhint{font-size:13px;color:var(--muted)}
+.qhint:empty{display:none}
+.qhint b{color:var(--ink);font-weight:600}
 </style>
 </head>
 <body>
@@ -170,7 +255,7 @@ dialog.info::backdrop{background:rgba(10,12,16,.55)}
   <header class="top">
     <div>
       <h1>Design Studies Elective Finder</h1>
-      <p>Design Studies BA electives with current sections, times, rooms and open seats. Select a course title to read its catalog description.</p>
+      <p>Design Studies BA electives with current sections, times, rooms and open seats. Select a course title to read its catalog description. Use Add to my plan to check sections for time conflicts and to print or copy a plan for your advising meeting.</p>
     </div>
     <div class="stamp">
       <span id="stamp">Loading data</span>
@@ -185,10 +270,11 @@ dialog.info::backdrop{background:rgba(10,12,16,.55)}
   <div class="bar">
     <div class="seg" id="terms" role="group" aria-label="Term"></div>
     <div class="controls">
-      <label>Search<input id="q" type="search" placeholder="Course code, title or instructor"></label>
+      <label>Search<input id="q" type="search" placeholder="Title, instructor, class # or keywords"></label>
       <label>Showing<select id="avail">
         <option value="offered">Offered this term</option>
         <option value="open">With open seats</option>
+        <option value="fast" hidden>Filling fast</option>
         <option value="not">Not offered this term</option>
         <option value="all">All listed electives</option>
       </select></label>
@@ -214,13 +300,17 @@ dialog.info::backdrop{background:rgba(10,12,16,.55)}
         <label>Ends no later than<select id="until"></select></label>
       </div>
     </div>
-    <div class="tally"><span id="tally"></span><span class="sortm"><label for="sortsel">Sort by</label><select id="sortsel"></select><button id="sortdir" type="button" aria-label="Reverse the sort order"></button></span><button class="reset" id="reset" type="button">Clear filters</button></div>
+    <div class="qhint" id="qhint" role="status"></div>
+    <div class="tally"><span id="tally"></span><span class="sortm"><label for="sortsel">Sort by</label><select id="sortsel"></select><button id="sortdir" type="button" aria-label="Reverse the sort order"></button></span><span><button class="reset" id="copylink" type="button">Copy link to this view</button> <button class="reset" id="reset" type="button">Clear filters</button></span></div>
+    <div class="status" id="linkmsg" role="status"></div>
   </div>
 
   <main class="ledger" id="ledger" aria-live="polite"></main>
 
   <section class="foot">
     <p>Sections and seats come from NC State Class Search as of the time shown above, so a section can fill after that. Restricted sections are often limited to certain majors or need departmental approval, so confirm with an advisor before planning around them.</p>
+    <p>My plan collects the sections you choose, flags time conflicts, and lets you print the plan, save it as a PDF, or copy it as text for an email. It is kept only in your browser. Seat trends compare today's open seats with those from about a week ago, so they appear a few days after the first collection.</p>
+    <p class="key" aria-label="Seat colors"><span class="ok">Seats available</span><span class="low">Running low (2 or fewer, or 20 percent or less)</span><span class="full">Closed</span></p>
     <p>Courses in the Advisor approval category are not on the catalog's elective lists but usually count with an advisor's approval. Special topics sections can change topic each semester, so check the topic first.</p>
     <details>
       <summary>About this list</summary>
@@ -230,8 +320,11 @@ dialog.info::backdrop{background:rgba(10,12,16,.55)}
     <p>Sources: the <a href="https://catalog.ncsu.edu/undergraduate/design/art-design/design-studies-ba/" target="_blank" rel="noopener">Design Studies (BA) catalog page</a> and <a href="https://webappprd.acs.ncsu.edu/php/coursecat/directory.php" target="_blank" rel="noopener">NC State Class Search</a>.</p>
   </section>
   <dialog class="info" id="info" aria-labelledby="info-title"></dialog>
+  <dialog class="info plan" id="plan" aria-labelledby="plan-title"></dialog>
+  <button class="planbar" id="planbar" type="button" hidden></button>
   <footer class="legal"><strong>Design Studies Elective Finder</strong><span>An unofficial advising aid. Not an official NC State website.</span></footer>
 </div>
+<div id="printarea" aria-hidden="true"></div>
 
 <script>
 const $ = (id) => document.getElementById(id);
@@ -243,6 +336,10 @@ const EMBEDDED_DETAILS = /*DETAILS*/null;                                       
 const LIVE_SITE = 'https://atb1982.github.io/design-studies-electives/';           // artifact copies load newer data from the live site
 const DATA_URL = (EMBEDDED ? LIVE_SITE : '') + 'data/electives.json';
 const CATALOG_URL = (EMBEDDED ? LIVE_SITE : '') + 'data/catalog.json';
+const LEMMAS_URL = (EMBEDDED ? LIVE_SITE : '') + 'data/lemmas.json';
+const HISTORY_URL = (EMBEDDED ? LIVE_SITE : '') + 'data/history.json';
+const EMBEDDED_LEMMAS = /*LEMMAS*/null;                                              // related word forms, inlined the same way
+const EMBEDDED_HISTORY = /*HISTORY*/null;                                            // seat counts from earlier days, inlined the same way
 const REFRESH_URL = EMBEDDED ? '' : 'https://design-studies-refresh.small-hat-4c1e.workers.dev';   // the refresh relay; empty means the button only reloads published data
 
 let terms = [], rows = [], generated = '';
@@ -261,17 +358,21 @@ function show(data) {
   generated = data.generated;
   rows = data.courses.map((c) => {
     const [subj, num] = c.code.split(' ');
-    const instructors = Object.values(c.terms).flat().map((s) => s.instructor).join(' ');
-    return { ...c, subj, num, search: `${c.code} ${c.title} ${instructors}`.toLowerCase() };
+    const extra = Object.values(c.terms).flat().map((s) => s.instructor + ' ' + (s.cls || '') + ' ' + (s.topic || '')).join(' ');
+    return { ...c, subj, num, search: `${c.code} ${c.title} ${extra}`.toLowerCase() };
   });
+  applyDetails();
   if (!terms.some((t) => t.id === state.term)) state.term = pickDefaultTerm();
   const keep = $('cat').value;
   const lists = [...new Set(rows.flatMap((r) => r.lists))].sort();
   $('cat').innerHTML = '<option value="">All categories</option>' + lists.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
   if (lists.includes(keep)) $('cat').value = keep;
+  buildIndex();
+  if (!hashApplied) { hashApplied = true; readHash(); loadPlan(); }
   $('stamp').textContent = isNaN(new Date(generated)) ? 'Data loaded' : 'Data collected ' + when(generated, true);
   drawTerms();
   render();
+  loadHistory();
 }
 
 function drawTerms() {
@@ -361,26 +462,73 @@ $('sortdir').addEventListener('click', () => { sort.dir = -sort.dir; render(); }
 document.addEventListener('click', (e) => { const b = e.target.closest('.lhead [data-sort]'); if (b) setSort(b.dataset.sort); });
 
 function matches(r, f) {
-  if (f.q && !f.q.split(/\s+/).every((w) => r.search.includes(w))) return false;
+  if (f.q && !queryMatches(r, f.q)) return false;
   if (f.cat && !r.lists.includes(f.cat)) return false;
   if (f.level && (f.level === '5' ? +r.num[0] < 5 : r.num[0] !== f.level)) return false;
   const secs = shownSecs(r);
   if (scheduleActive() && f.avail !== 'not' && !secs) return false;
   if (f.avail === 'offered' && !secs) return false;
   if (f.avail === 'open' && !(secs && secs.some((s) => s.status === 'Open'))) return false;
+  if (f.avail === 'fast' && !(secs && secs.some(isFast))) return false;
   if (f.avail === 'not' && r.terms[state.term]) return false;
   if (f.mode && !(secs && secs.some((s) => (f.mode === 'online' ? isOnline(s) : !isOnline(s))))) return false;
   return true;
 }
 
-function secHTML(s, term) {
+const slug = (l) => 'c-' + l.toLowerCase().replace(/\s*\(.*$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+// Green: plenty of seats. Yellow: some seats taken and 2 or fewer left, or 20 percent or less of the section. Red: closed or full.
+function seatLevel(s) {
+  if (s.status !== 'Open') return 'full';
+  if (s.left === null) return 'ok';
+  return s.left < s.cap && (s.left <= 2 || s.left / s.cap <= 0.2) ? 'low' : 'ok';
+}
+const secKey = (termId, r, s) => termId + '|' + (s.cls || r.code + '-' + s.section);
+
+/* Seat trends compare today's open seats with a snapshot from about a week ago (data/history.json, one snapshot per day). */
+let histBase = null;                                   // { age: days ago, snap: { class number: seats open } }
+function setHistory(h) {
+  histBase = null;
+  const snaps = h && h.snapshots;
+  if (snaps && generated) {
+    const today = new Date(generated.slice(0, 10));
+    for (const [d, snap] of Object.entries(snaps)) {
+      const age = Math.round((today - new Date(d)) / 864e5);
+      if (age >= 3 && age <= 14 && (!histBase || Math.abs(age - 7) < Math.abs(histBase.age - 7))) histBase = { age, snap };
+    }
+  }
+  const opt = document.querySelector('#avail option[value="fast"]');
+  opt.hidden = !histBase;
+  if (!histBase && $('avail').value === 'fast') $('avail').value = 'offered';
+  render();
+}
+async function loadHistory() {
+  try {
+    setHistory(EMBEDDED_HISTORY || await (await fetch(HISTORY_URL + '?ts=' + Date.now(), { cache: 'no-store' })).json());
+  } catch (e) { setHistory(null); }                    // no history yet: the page simply shows no trends
+}
+function trend(s) {
+  if (!histBase || !s.cls) return null;
+  const prev = histBase.snap[s.cls];
+  if (prev === undefined) return null;
+  const span = histBase.age === 7 ? 'in the past week' : `in the past ${histBase.age} days`;
+  if (s.status !== 'Open') return prev > 0 ? { text: 'Filled ' + span, fast: false } : null;
+  if (s.left === null || prev <= s.left) return null;
+  const d = prev - s.left, fast = d >= Math.max(3, 0.4 * s.cap);
+  return { text: (fast ? 'Filling fast: ' : '') + `↓ ${d} ${span}`, fast };
+}
+const isFast = (s) => { const t = trend(s); return !!(t && t.fast); };
+
+function secHTML(s, term, r) {
   const open = s.status === 'Open';
   const label = open && s.left !== null ? `${s.left} of ${s.cap} open` : s.status;
   const bits = [];
   if (s.topic) bits.push('Topic: ' + s.topic);
   if (s.dates && s.dates !== term.dates) bits.push('Dates: ' + s.dates);
   if (s.restrictions) bits.push(s.restrictions);
-  return `<li class="sec"><span class="n">${esc(s.section)} ${esc(s.component)}</span><span class="when">${esc(s.time)}</span><span class="where">${esc(s.location)}</span><span class="who">${esc(s.instructor)}</span><span class="badge ${open ? 'open' : 'closed'}">${esc(label)}</span>${bits.length ? `<span class="note">${esc(bits.join(' · '))}</span>` : ''}</li>`;
+  const key = secKey(term.id, r, s), on = plan.has(key), tr = trend(s);
+  const cls = s.cls ? `<button type="button" class="cls" data-copy="${esc(s.cls)}" title="Copy class number" aria-label="Class number ${esc(s.cls)}. Activate to copy it.">#${esc(s.cls)}</button>` : '';
+  const add = `<button type="button" class="add" data-key="${esc(key)}" data-name="${esc(r.code + ' section ' + s.section)}" aria-pressed="${on}" aria-label="${esc(addLabel(on, r.code + ' section ' + s.section))}" title="${on ? 'Remove this section from My plan' : 'Add this section to My plan'}">${on ? '✓ In my plan' : '+ Add to my plan'}</button>`;
+  return `<li class="sec"><span class="n"><span>${esc(s.section)} ${esc(s.component)}</span>${cls}</span><span class="when">${esc(s.time)}</span><span class="where">${esc(s.location)}</span><span class="who">${esc(s.instructor)}</span><span class="seatcell"><span class="seats ${seatLevel(s)}">${esc(label)}</span>${tr ? `<span class="trend${tr.fast ? ' fast' : ''}">${esc(tr.text)}</span>` : ''}${add}</span>${bits.length ? `<span class="note">${esc(bits.join(' · '))}</span>` : ''}</li>`;
 }
 
 function courseHTML(r, term) {
@@ -389,9 +537,9 @@ function courseHTML(r, term) {
   const also = others.length
     ? `<div class="also">Also in ${others.map((t) => `<button type="button" data-term="${esc(t.id)}">${esc(t.short)}</button>`).join('')}</div>`
     : (secs ? '' : '<div class="also">No sections posted for any term yet</div>');
-  const cats = r.lists.map((l) => `<li${l.startsWith('Advisor approval') ? ' class="warn"' : ''}>${esc(l)}</li>`).join('');
-  return `<article class="course"><div class="id"><div class="code">${esc(r.subj)} <span>${esc(r.num)}${r.credits ? ' · ' + esc(r.credits) + ' cr' : ''}</span></div><div class="name"><button type="button" data-info="${esc(r.code)}" aria-haspopup="dialog">${esc(r.title || 'Title not listed in catalog')}</button></div>${also}</div><div class="cat"><ul>${cats}</ul></div>
-  <ul class="secs">${secs ? sortSecs(secs).map((s) => secHTML(s, term)).join('') : '<li class="none">Not offered this term</li>'}</ul></article>`;
+  const cats = r.lists.map((l) => `<li><span class="pill ${slug(l)}">${esc(l)}</span></li>`).join('');
+  return `<article class="course"><div class="id"><div class="code">${esc(r.subj)} <span>${esc(r.num)}${r.credits ? ' · ' + esc(r.credits) + ' cr' : ''}</span></div><div class="name"><button type="button" data-info="${esc(r.code)}" aria-haspopup="dialog">${esc(r.title || 'Title not listed in catalog')}</button></div>${snippet(r)}${also}</div><div class="cat"><ul>${cats}</ul></div>
+  <ul class="secs">${secs ? sortSecs(secs).map((s) => secHTML(s, term, r)).join('') : '<li class="none">Not offered this term</li>'}</ul></article>`;
 }
 
 function render() {
@@ -399,12 +547,17 @@ function render() {
   sched = { from: $('from').value, until: $('until').value };
   const term = terms.find((t) => t.id === state.term);
   if (!term) { $('ledger').innerHTML = '<div class="empty">No term data available yet.</div>'; return; }
+  curQ = $('q').value.trim().toLowerCase();
+  ensureDesc(curQ);
   const f = { q: $('q').value.trim().toLowerCase(), cat: $('cat').value, level: $('level').value, avail: $('avail').value, mode: $('mode').value };
   const list = sortCourses(rows.filter((r) => matches(r, f)));
+  if (f.q && sort.key === 'course') list.sort((a, b) => rankOf(a, f.q) - rankOf(b, f.q));   // whole phrase first, then exact words, then related forms
+  $('qhint').innerHTML = relatedHint(f.q);
   $('sortsel').value = sort.key;
   $('sortdir').textContent = sort.dir > 0 ? '▲ Ascending' : '▼ Descending';
   const nSecs = list.reduce((n, r) => n + (shownSecs(r) || []).length, 0);
   $('tally').innerHTML = `<b>${list.length}</b> ${list.length === 1 ? 'course' : 'courses'} · <b>${nSecs}</b> ${nSecs === 1 ? 'section' : 'sections'} · ${esc(term.label)}${scheduleActive() ? ' · day and time filters on' : ''}`;
+  writeHash(); updatePlanBar();
   $('ledger').innerHTML = list.length ? headHTML() + list.map((r) => courseHTML(r, term)).join('') : '<div class="empty">No electives match these filters for this term. Try Clear filters, or switch the term.</div>';
 }
 
@@ -492,7 +645,7 @@ async function openInfo(code, opener) {
   const d = all && all[code];
   infoOpener = opener || null;
   const credits = d && d.h ? d.h : (r.credits ? r.credits + ' credit hours' : '');
-  const chips = r.lists.map((l) => `<span class="chip${l.startsWith('Advisor approval') ? ' warn' : ''}">${esc(l)}</span>`).join('');
+  const chips = r.lists.map((l) => `<span class="chip ${slug(l)}">${esc(l)}</span>`).join('');
   const posted = terms.filter((t) => r.terms[t.id]).map((t) => `<li>${esc(t.label)}: ${r.terms[t.id].length} ${r.terms[t.id].length === 1 ? 'section' : 'sections'}</li>`).join('');
   const missing = all
     ? 'The catalog has no entry for this course code. It may have been retired or renumbered, so please confirm with the department.'
@@ -514,6 +667,286 @@ async function openInfo(code, opener) {
 document.addEventListener('click', (e) => { const b = e.target.closest('button[data-info]'); if (b) openInfo(b.dataset.info, b); });
 infoDlg.addEventListener('click', (e) => { if (e.target === infoDlg || e.target.closest('[data-close]')) infoDlg.close(); });
 infoDlg.addEventListener('close', () => { if (infoOpener && document.contains(infoOpener)) infoOpener.focus(); });
+
+/* ---------------------------------------------------------------------------------------------
+   Search: accent folding, related word forms and phrase ranking.
+   data/lemmas.json lists the base form of the words the catalog uses (studies > study, women > woman).
+   It loads with the course descriptions the first time someone types three letters. If it cannot load,
+   search still finds exact words and parts of words, as it always has.
+   --------------------------------------------------------------------------------------------- */
+let curQ = '', descState = 0, detailsAll = null, LEMMAS = {}, ALLTOK = new Set();
+const fold = (t) => String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const tokensOf = (t) => fold(t).match(/[a-z0-9]+/g) || [];
+const withBases = (set, toks) => toks.forEach((t) => { set.add(t); (LEMMAS[t] || []).forEach((l) => set.add(l)); });
+
+function indexRow(r) {
+  const title = tokensOf(r.search);                                   // code, title, topic, instructor, class number
+  r.tset = new Set(); withBases(r.tset, title);
+  r.toks = [...new Set(r.desc ? [...title, ...tokensOf(r.desc)] : title)];
+  r.lset = new Set(); withBases(r.lset, r.toks);
+}
+function applyDetails() {                                              // runs when new data or the descriptions arrive
+  rows.forEach((r) => {
+    const d = detailsAll && detailsAll[r.code];
+    r.descRaw = d ? d.d || '' : '';
+    r.desc = d ? (r.descRaw + ' ' + (d.p || '')).toLowerCase() : '';
+    indexRow(r);
+  });
+  ALLTOK = new Set(); rows.forEach((r) => r.toks.forEach((t) => ALLTOK.add(t)));
+}
+let lemmasPromise = null;
+const loadLemmas = () => lemmasPromise || (lemmasPromise = (EMBEDDED_LEMMAS
+  ? Promise.resolve(EMBEDDED_LEMMAS)
+  : fetch(LEMMAS_URL).then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))).then((j) => j.forms)).catch(() => null));
+function ensureDesc(q) {
+  if (descState || q.length < 3) return;
+  descState = 1;
+  Promise.all([loadDetails(), loadLemmas()]).then(([all, forms]) => {
+    detailsAll = all; LEMMAS = forms || {};
+    applyDetails(); descState = 2; render();
+  });
+}
+function guess(w) {                                                    // a typed word the catalog never uses: common endings only
+  const o = [];
+  if (w.length > 4 && w.endsWith('ies')) o.push(w.slice(0, -3) + 'y');
+  if (w.length > 3 && w.endsWith('es')) o.push(w.slice(0, -2));
+  if (w.length > 3 && w.endsWith('s') && !w.endsWith('ss')) o.push(w.slice(0, -1));
+  if (w.length > 4 && w.endsWith('ing')) o.push(w.slice(0, -3), w.slice(0, -3) + 'e');
+  if (w.length > 3 && w.endsWith('ed')) o.push(w.slice(0, -2), w.slice(0, -1));
+  return o;
+}
+const lemSet = (w) => new Set([w, ...(LEMMAS[w] || (ALLTOK.has(w) ? [] : guess(w)))]);
+const qWords = (q) => tokensOf(q);
+function wordHit(r, set, isLast, w) {
+  for (const c of set) if (r.lset.has(c)) return true;
+  return isLast && r.toks.some((t) => t.startsWith(w));                // the last word may still be half typed
+}
+function queryMatches(r, q) {
+  const hay = fold(r.search + ' ' + (r.desc || ''));                   // letters anywhere in the text, accents ignored
+  const ws = qWords(q);
+  if (!ws.length) return true;
+  if (ws.every((w) => hay.includes(w))) return true;
+  return ws.every((w, i) => wordHit(r, lemSet(w), i === ws.length - 1, w));
+}
+function rankOf(r, q) {                                                // 0 whole phrase, 1 every word as typed, 2 related forms only
+  const ws = qWords(q), text = ' ' + tokensOf(r.search + ' ' + (r.desc || '')).join(' ') + ' ';
+  if (ws.length > 1 && text.includes(' ' + ws.join(' ') + ' ')) return 0;
+  const exact = new Set(r.toks);
+  return ws.every((w) => exact.has(w)) ? 1 : 2;
+}
+function relatedHint(q) {
+  if (!q || descState < 2) return '';
+  const ws = qWords(q), found = new Set();
+  ws.forEach((w) => {
+    const cand = lemSet(w);
+    ALLTOK.forEach((t) => { if (t !== w && !t.includes(w) && [t, ...(LEMMAS[t] || [])].some((x) => cand.has(x))) found.add(t); });
+  });
+  const list = [...found].sort((a, b) => a.length - b.length || a.localeCompare(b)).slice(0, 8);
+  return list.length ? `Also matching related forms: <b>${list.map(esc).join(', ')}</b>.${sort.key === 'course' ? ' Exact matches are listed first.' : ''}` : '';
+}
+const tokenMatches = (tok, ws) => {
+  const f = fold(tok);
+  return ws.some((w, i) => [...lemSet(w)].some((c) => c === f || (LEMMAS[f] || []).includes(c)) || (i === ws.length - 1 && f.startsWith(w)) || f.includes(w));
+};
+function snippet(r) {                                                  // a short excerpt of the description with the matching words marked
+  if (!curQ || !r.descRaw) return '';
+  const ws = qWords(curQ);
+  if (!ws.length) return '';
+  if (ws.every((w, i) => wordHit({ lset: r.tset, toks: [...r.tset] }, lemSet(w), i === ws.length - 1, w) || fold(r.search).includes(w))) return '';   // the title, topic or instructor already explains the match
+  const raw = r.descRaw;
+  let at = fold(raw).indexOf(ws.join(' '));
+  if (at < 0) for (const m of raw.matchAll(/[\p{L}\p{N}]+/gu)) if (tokenMatches(m[0], ws)) { at = m.index; break; }
+  if (at < 0) return '';
+  const from = Math.max(0, at - 70), to = Math.min(raw.length, at + 110), text = raw.slice(from, to).trim();
+  let out = from ? '…' : '', last = 0;
+  for (const m of text.matchAll(/[\p{L}\p{N}]+/gu)) {
+    out += esc(text.slice(last, m.index)) + (tokenMatches(m[0], ws) ? `<mark>${esc(m[0])}</mark>` : esc(m[0]));
+    last = m.index + m[0].length;
+  }
+  out += esc(text.slice(last)) + (to < raw.length ? '…' : '');
+  return `<div class="snip">In the description: ${out}</div>`;
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Links that reopen the same view
+   --------------------------------------------------------------------------------------------- */
+const hashParams = () => {
+  const p = new URLSearchParams(), put = (k, v, d = '') => { if (v !== undefined && v !== null && v !== d) p.set(k, v); };
+  put('term', state.term, pickDefaultTerm()); put('q', $('q').value.trim()); put('category', $('cat').value); put('level', $('level').value);
+  put('showing', $('avail').value, 'offered'); put('format', $('mode').value); put('from', $('from').value); put('until', $('until').value);
+  if (dayPick.size) p.set('days', [...dayPick].join(','));
+  if (sort.key !== 'course' || sort.dir !== 1) p.set('sort', sort.key + (sort.dir < 0 ? '-desc' : ''));
+  return p.toString().replace(/%2C/g, ',');
+};
+function writeHash() {
+  const h = hashParams();
+  try { history.replaceState(null, '', location.pathname + location.search + (h ? '#' + h : '')); } catch (e) { /* not available in a preview */ }
+}
+let hashApplied = false;
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (terms.some((t) => t.id === p.get('term'))) state.term = p.get('term');
+  const set = (id, k) => { const v = p.get(k); if (v !== null && [...$(id).options].some((o) => o.value === v && !o.hidden)) $(id).value = v; };
+  $('q').value = p.get('q') || '';
+  set('cat', 'category'); set('level', 'level'); set('avail', 'showing'); set('mode', 'format'); set('from', 'from'); set('until', 'until');
+  (p.get('days') || '').split(',').filter((d) => d in DAYIDX).forEach((d) => dayPick.add(d));
+  document.querySelectorAll('#days button').forEach((b) => b.setAttribute('aria-pressed', dayPick.has(b.dataset.day)));
+  const sk = (p.get('sort') || '').replace('-desc', '');
+  if (SECVAL[sk] || sk === 'cat') { sort.key = sk; sort.dir = /-desc$/.test(p.get('sort')) ? -1 : 1; }
+  drawTerms();
+}
+$('copylink').addEventListener('click', async () => {
+  const h = hashParams(), link = (EMBEDDED ? LIVE_SITE : location.origin + location.pathname) + (h ? '#' + h : '');
+  let ok = false;
+  try { await navigator.clipboard.writeText(link); ok = true; } catch (e) { /* clipboard blocked */ }
+  $('linkmsg').textContent = (ok ? 'Link copied: ' : 'Copy this link: ') + link;
+});
+document.addEventListener('click', async (e) => {                      // copy a class number
+  const b = e.target.closest('button[data-copy]'); if (!b) return;
+  const old = b.textContent;
+  try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'Copied'; } catch (err) { b.textContent = b.dataset.copy; }
+  setTimeout(() => { b.textContent = old; }, 1300);
+});
+
+/* ---------------------------------------------------------------------------------------------
+   My plan: collect sections, check for time conflicts, print, or copy as text
+   --------------------------------------------------------------------------------------------- */
+const plan = new Set();
+const planMeta = { student: '', notes: '' };
+const secIndex = new Map();
+const addLabel = (on, name) => (on ? 'Remove ' : 'Add ') + name + (on ? ' from my plan' : ' to my plan');
+function buildIndex() {
+  secIndex.clear();
+  rows.forEach((r) => terms.forEach((t) => (r.terms[t.id] || []).forEach((s) => secIndex.set(secKey(t.id, r, s), { r, s, term: t }))));
+}
+function loadPlan() {
+  try { JSON.parse(localStorage.getItem('dsPlan') || '[]').forEach((k) => secIndex.has(k) && plan.add(k)); } catch (e) { /* storage not available */ }
+}
+const savePlan = () => { try { localStorage.setItem('dsPlan', JSON.stringify([...plan])); } catch (e) { /* storage not available */ } };
+
+/* Plain wording for times: 'MW 1:30 PM-4:15 PM' becomes 'Monday and Wednesday, 1:30 PM to 4:15 PM' */
+const DAYNAME = { M: 'Monday', T: 'Tuesday', W: 'Wednesday', Th: 'Thursday', F: 'Friday', Sa: 'Saturday', Su: 'Sunday' };
+const DAYSHORT = { M: 'Mon', T: 'Tue', W: 'Wed', Th: 'Thu', F: 'Fri', Sa: 'Sat', Su: 'Sun' };
+const COMPONENT = { Lec: 'Lecture', Lab: 'Laboratory', Sem: 'Seminar', Rec: 'Recitation', Ind: 'Independent study', Int: 'Internship', Dis: 'Discussion', Stu: 'Studio' };
+const clockText = (min) => `${Math.floor(min / 60) % 12 || 12}:${String(min % 60).padStart(2, '0')} ${min < 720 ? 'AM' : 'PM'}`;
+const listWords = (a) => (a.length < 3 ? a.join(' and ') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
+function whenText(s, short) {
+  const ms = meetings(s);
+  if (!ms.length) return !s.time || s.time === 'TBD' ? 'Time to be announced' : s.time;
+  return ms.map((m) => {
+    const names = m.days.map((d) => (short ? DAYSHORT : DAYNAME)[d] || d);
+    return `${short ? names.join(', ') : listWords(names)}${short ? ' ' : ', '}${clockText(m.start)} to ${clockText(m.end)}`;
+  }).join(short ? '; ' : '; and ');
+}
+const sectionName = (s) => `${s.section} ${COMPONENT[s.component] || s.component}`;
+const seatText = (s) => (s.status === 'Open' && s.left !== null ? `${s.left} of ${s.cap} open` : s.status);
+const extraNotes = (s) => [s.topic && 'Topic: ' + s.topic, s.restrictions].filter(Boolean);
+
+function creditRange(c) { const m = String(c || '').match(/\d+(\.\d+)?/g) || []; return m.length ? [Math.min(...m.map(Number)), Math.max(...m.map(Number))] : [0, 0]; }
+const creditText = (lo, hi) => (lo === hi ? `${lo} ${lo === 1 ? 'credit' : 'credits'}` : `${lo} to ${hi} credits`);
+const totalCredits = (items) => items.reduce((a, e) => { const [lo, hi] = creditRange(e.r.credits); return [a[0] + lo, a[1] + hi]; }, [0, 0]);
+function planGroups() {
+  return terms.map((t) => ({ t, items: [...plan].map((k) => secIndex.get(k)).filter((e) => e && e.term.id === t.id).sort((a, b) => courseAsc(a.r, b.r) || a.s.section.localeCompare(b.s.section)) })).filter((g) => g.items.length);
+}
+function overlaps(items) {
+  const out = [];
+  for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+    const days = new Set(); let from = 0, to = 0;
+    meetings(items[i].s).forEach((a) => meetings(items[j].s).forEach((b) => {
+      const shared = a.days.filter((d) => b.days.includes(d));
+      if (shared.length && a.start < b.end && b.start < a.end) { shared.forEach((d) => days.add(d)); from = Math.max(a.start, b.start); to = Math.min(a.end, b.end); }
+    }));
+    if (days.size) out.push(`${items[i].r.code} (section ${items[i].s.section}) and ${items[j].r.code} (section ${items[j].s.section}) overlap on ${listWords([...days].map((d) => DAYNAME[d]))}, ${clockText(from)} to ${clockText(to)}.`);
+  }
+  return out;
+}
+const preparedOn = () => new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+const seatsAsOf = () => (isNaN(new Date(generated)) ? 'the last collection' : when(generated, true));
+
+function planDoc() {
+  const groups = planGroups();
+  let all = [0, 0];
+  const body = groups.map(({ t, items }) => {
+    const tot = totalCredits(items);
+    all = [all[0] + tot[0], all[1] + tot[1]];
+    const warns = overlaps(items).map((w) => `<p class="warn"><b>Time conflict.</b> ${esc(w)}</p>`).join('');
+    return `<h3>${esc(t.label)}</h3><div class="scroll"><table><thead><tr><th>Course</th><th>Class number</th><th>Section</th><th>Days and time</th><th>Location</th><th>Instructor</th><th>Seats</th><th>Credits</th></tr></thead><tbody>` +
+      items.map(({ r, s }) => `<tr><td><span class="t">${esc(r.code)}</span><br>${esc(r.title)}${extraNotes(s).map((n) => `<br><span class="sub">${esc(n)}</span>`).join('')}</td><td>${esc(s.cls || 'Not listed')}</td><td>${esc(sectionName(s))}</td><td>${esc(whenText(s, true))}</td><td>${esc(s.location || 'To be announced')}</td><td>${esc(s.instructor || 'Staff')}</td><td>${esc(seatText(s))}</td><td>${esc(r.credits)}</td></tr>`).join('') +
+      `</tbody></table></div><p class="tot">${esc(t.label)} total: ${creditText(...tot)}</p>${warns}`;
+  }).join('');
+  return `<div class="doc"><h2>Design Studies course plan</h2><p class="meta">${planMeta.student ? 'Student: ' + esc(planMeta.student) + ' · ' : ''}Prepared ${esc(preparedOn())}</p>` +
+    (body || '<p class="planempty">Your plan is empty. Select Add to my plan beside any section.</p>') +
+    (groups.length > 1 ? `<p class="tot">All terms: ${creditText(...all)}</p>` : '') +
+    (planMeta.notes ? `<p class="nt"><b>Advisor notes:</b> ${esc(planMeta.notes)}</p>` : '') +
+    `<p class="fine">Seat counts were collected ${esc(seatsAsOf())} and can change. Confirm in MyPack before registering. This is an unofficial advising aid, not an NC State record.</p></div>`;
+}
+
+/* The text version reads top to bottom, one labeled line per fact, so it pastes cleanly into an email. */
+function planText() {
+  const L = ['DESIGN STUDIES COURSE PLAN'];
+  if (planMeta.student) L.push('Student: ' + planMeta.student);
+  L.push('Prepared: ' + preparedOn());
+  const groups = planGroups();
+  groups.forEach(({ t, items }) => {
+    L.push('', '='.repeat(40), `${t.label.toUpperCase()}  (${creditText(...totalCredits(items))})`, '='.repeat(40));
+    items.forEach(({ r, s }, i) => {
+      L.push('', `${i + 1}. ${r.code}: ${r.title} (${creditText(...creditRange(r.credits))})`,
+        `   Class number:  ${s.cls || 'Not listed'}`,
+        `   Section:       ${sectionName(s)}`,
+        `   Days and time: ${whenText(s)}`,
+        `   Location:      ${s.location || 'To be announced'}`,
+        `   Instructor:    ${s.instructor || 'Staff'}`,
+        `   Seats:         ${seatText(s)}`);
+      extraNotes(s).forEach((n) => L.push(`   Note:          ${n}`));
+    });
+    const warns = overlaps(items);
+    if (warns.length) L.push('', 'TIME CONFLICTS', ...warns.map((w) => '   ' + w));
+  });
+  if (!groups.length) L.push('', 'No sections have been added yet.');
+  if (planMeta.notes) L.push('', 'ADVISOR NOTES', planMeta.notes);
+  L.push('', `Seat counts were collected ${seatsAsOf()} and can change. Confirm in MyPack before registering.`);
+  return L.join('\n');
+}
+
+function updatePlanBar() {
+  const items = planGroups().flatMap((g) => g.items), [lo, hi] = totalCredits(items);
+  $('planbar').hidden = !items.length;
+  $('planbar').textContent = `View my plan: ${items.length} ${items.length === 1 ? 'section' : 'sections'}, ${creditText(lo, hi)}`;
+}
+function openPlan() {
+  const dlg = $('plan');
+  dlg.innerHTML = `<div class="hd"><div><h2 id="plan-title">My plan</h2><p class="fine">These are the sections you added with Add to my plan. Print the plan, save it as a PDF, or copy it as text to paste into an email. It stays in this browser and is not sent anywhere.</p></div><button class="x" type="button" data-close>Close</button></div>` +
+    `<div class="bd"><div class="form"><label>Student name (optional, not saved)<input id="sname" value="${esc(planMeta.student)}" autocomplete="off"></label><label>Advisor notes (optional, not saved)<textarea id="snotes">${esc(planMeta.notes)}</textarea></label></div>` +
+    `<div class="acts"><button class="primary" type="button" id="sprint">Print or save as PDF</button><button type="button" id="scopy">Copy plan as text</button><button type="button" id="sclear">Clear plan</button></div><div id="sdoc">${planDoc()}</div></div>`;
+  dlg.showModal();
+}
+const refreshDoc = () => { const d = $('sdoc'); if (d) d.innerHTML = planDoc(); };
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'sname') { planMeta.student = e.target.value; refreshDoc(); }
+  if (e.target.id === 'snotes') { planMeta.notes = e.target.value; refreshDoc(); }
+});
+document.addEventListener('click', async (e) => {
+  const add = e.target.closest('button.add');
+  if (add) {
+    const k = add.dataset.key, on = !plan.has(k);
+    on ? plan.add(k) : plan.delete(k);
+    add.setAttribute('aria-pressed', on);
+    add.textContent = on ? '✓ In my plan' : '+ Add to my plan';
+    add.setAttribute('aria-label', addLabel(on, add.dataset.name));
+    add.title = on ? 'Remove this section from My plan' : 'Add this section to My plan';
+    savePlan(); updatePlanBar(); return;
+  }
+  if (e.target.closest('#planbar')) { openPlan(); return; }
+  if (e.target.id === 'sprint') { $('printarea').innerHTML = planDoc(); window.print(); return; }
+  if (e.target.id === 'scopy') {
+    const b = e.target, old = b.textContent;
+    try { await navigator.clipboard.writeText(planText()); b.textContent = 'Copied'; } catch (err) { b.textContent = 'Copy blocked by this browser'; }
+    setTimeout(() => { b.textContent = old; }, 1500); return;
+  }
+  if (e.target.id === 'sclear') { plan.clear(); savePlan(); updatePlanBar(); refreshDoc(); render(); return; }
+});
+$('plan').addEventListener('click', (e) => { if (e.target === $('plan') || e.target.closest('[data-close]')) $('plan').close(); });
+
 $('reload').title = REFRESH_URL
   ? 'Collects the newest sections from NC State, which takes about two minutes. The live site also updates itself every morning.'
   : 'Loads the newest data the live site has published. The site updates itself every morning.';

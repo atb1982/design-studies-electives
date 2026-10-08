@@ -54,6 +54,11 @@ class SearchTests(unittest.TestCase):
         self.assertEqual(first["dates"], "01/11/27 - 04/27/27")
         self.assertIn("DS majors", first["restrictions"])
 
+    def test_class_number_is_collected(self):
+        secs = self.found["ADN 219"]["sections"]
+        self.assertTrue(all(s["cls"].isdigit() for s in secs))
+        self.assertEqual(len({s["cls"] for s in secs}), len(secs))
+
     def test_meeting_days_are_readable(self):
         times = [s["time"] for course in self.found.values() for s in course["sections"]]
         self.assertFalse([t for t in times if "meets" in t])
@@ -80,6 +85,36 @@ class TermTests(unittest.TestCase):
 
     def test_start_date(self):
         self.assertEqual(C.start_date("08/17/26 - 12/01/26"), "2026-08-17")
+
+
+class HistoryTests(unittest.TestCase):
+    COURSES = [{"terms": {"2271": [
+        {"cls": "100", "status": "Open", "left": 5, "cap": 20},
+        {"cls": "101", "status": "Closed", "left": 0, "cap": 20},
+        {"cls": "102", "status": "Open", "left": None, "cap": None},
+        {"cls": "", "status": "Open", "left": 3, "cap": 9}]}}]
+
+    def test_snapshot_counts_open_seats_and_skips_unknowns(self):
+        self.assertEqual(C.seat_snapshot(self.COURSES), {"100": 5, "101": 0})
+
+    def test_history_keeps_two_weeks_and_replaces_the_same_day(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "history.json"
+            for d in range(1, 21):
+                C.update_history(path, self.COURSES, f"2026-10-{d:02d}")
+            C.update_history(path, [{"terms": {"2271": [{"cls": "100", "status": "Open", "left": 2, "cap": 20}]}}], "2026-10-20")
+            snaps = json.loads(path.read_text())["snapshots"]
+            self.assertEqual(len(snaps), C.HISTORY_DAYS)
+            self.assertEqual(min(snaps), "2026-10-07")
+            self.assertEqual(snaps["2026-10-20"], {"100": 2})
+
+    def test_damaged_history_file_is_started_again(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "history.json"
+            path.write_text("not json")
+            self.assertEqual(C.update_history(path, self.COURSES, "2026-10-07"), 1)
 
 
 class CsvTests(unittest.TestCase):
