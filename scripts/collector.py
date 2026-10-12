@@ -225,27 +225,59 @@ def start_date(dates):
     return f"20{m.group(3)}-{m.group(1)}-{m.group(2)}" if m else ""
 
 
-# ---------------------------------------------------------------- supplement
+# ---------------------------------------------------------------- exceptions
 
-def load_supplement(path):
-    """supplement.json lists courses that are not on the catalog's elective lists but usually count
-    with advisor approval: {"label": "...", "courses": [{"code": "DS 492", "title": "..."}]}."""
+EXCEPTION_LABEL = "Exception"
+
+
+def load_exceptions(path):
+    """exceptions.json lists courses that advisors accept for a requirement although the program page does not list
+    them. Each entry: code, title, counts_toward (a category name, or empty when it varies), condition (optional
+    student-facing sentence), topic (optional: only sections with this topic), status ("active" or "retired"),
+    and approved/source (kept for the record, never shown on the page). Retired entries are skipped."""
     if not path.exists():
-        return {"label": "", "courses": []}
+        return []
     data = json.loads(path.read_text(encoding="utf-8"))
-    return {"label": data["label"], "courses": [{"code": squash(c["code"]), "title": squash(c.get("title", ""))}
-                                                  for c in data.get("courses", [])]}
+    out = []
+    for e in data.get("exceptions", []):
+        status = e.get("status", "active")
+        if status not in ("active", "retired"):
+            raise SystemExit(f"exceptions.json: {e.get('code')} has status '{status}'. Use active or retired.")
+        if status == "retired":
+            continue
+        out.append({"code": squash(e["code"]), "title": squash(e.get("title", "")),
+                    "counts": squash(e.get("counts_toward", "")), "condition": squash(e.get("condition", "")),
+                    "topic": squash(e.get("topic", ""))})
+    return out
 
 
-def merge_supplement(catalog, supplement):
-    """Adds supplement courses that the catalog lists do not already carry. Returns the set of added keys."""
-    added = set()
-    for c in supplement["courses"]:
-        if c["code"] in catalog:
-            continue                       # already on a catalog list, so it keeps those labels
-        catalog[c["code"]] = {"title": c["title"], "credits": "", "lists": [supplement["label"]]}
-        added.add(c["code"])
-    return added
+def check_exceptions(exceptions, catalog):
+    """A misspelled category would print wrong advice on the public page, so stop instead."""
+    known = {label for c in catalog.values() for label in c["lists"]}
+    for e in exceptions:
+        if e["counts"] and e["counts"] not in known:
+            raise SystemExit(f"exceptions.json: {e['code']} counts toward '{e['counts']}', which is not a catalog category. "
+                             f"Known categories: {', '.join(sorted(known))}")
+
+
+def merge_exceptions(catalog, exceptions):
+    """Adds courses the catalog lists do not carry. Every excepted course gets the category it counts toward
+    (when it does not have it already) and the Exception tag.
+    Returns {code: [entries]} and the set of courses that were added."""
+    by_code, added = {}, set()
+    for e in exceptions:
+        if e["code"] not in catalog:
+            catalog[e["code"]] = {"title": e["title"], "credits": "", "lists": []}
+            added.add(e["code"])
+        by_code.setdefault(e["code"], []).append({k: e[k] for k in ("counts", "condition", "topic") if e[k]})
+    for code, entries in by_code.items():
+        lists = catalog[code]["lists"]
+        for e in entries:                                   # show the category it counts toward, then the Exception tag
+            if e.get("counts") and e["counts"] not in lists:
+                lists.append(e["counts"])
+        if EXCEPTION_LABEL not in lists:
+            lists.append(EXCEPTION_LABEL)
+    return by_code, added
 
 
 # ---------------------------------------------------------------- output
@@ -376,11 +408,13 @@ def main():
     # Guard: a layout change on the catalog page must not wipe the published data.
     if len(catalog) < 300:
         raise SystemExit(f"Only {len(catalog)} electives found on the catalog page. The page layout may have changed.")
-    added = merge_supplement(catalog, load_supplement(Path("supplement.json")))
+    exceptions = load_exceptions(Path("exceptions.json"))
+    check_exceptions(exceptions, catalog)
+    exc_by_code, added = merge_exceptions(catalog, exceptions)
     keys = sorted(catalog)
     wanted = set(keys)
     subjects = sorted({k.split(" ")[0] for k in keys})
-    print(f"Catalog: {len(keys) - len(added)} electives plus {len(added)} supplement courses, {len(subjects)} subjects")
+    print(f"Catalog: {len(keys) - len(added)} electives plus {len(added)} exception courses, {len(subjects)} subjects")
 
     candidates = candidate_terms()
     current = candidates[0]["id"]
@@ -402,7 +436,7 @@ def main():
         for term, parsed in pool.map(work, jobs):
             for key, course in parsed.items():
                 found.setdefault(key, {})[term] = course["sections"]
-                if key in added:              # supplement courses take credits (and a missing title) from Class Search
+                if key in added:              # exception courses take credits (and a missing title) from Class Search
                     if course["credits"]:
                         catalog[key]["credits"] = course["credits"]
                     if not catalog[key]["title"]:
@@ -414,8 +448,13 @@ def main():
         t["dates"] = tally.most_common(1)[0][0] if tally else ""
         t["start"] = start_date(t["dates"])
 
-    courses = [{"code": k, "title": catalog[k]["title"], "credits": catalog[k]["credits"],
-                "lists": catalog[k]["lists"], "terms": found.get(k, {})} for k in keys]
+    courses = []
+    for k in keys:
+        c = {"code": k, "title": catalog[k]["title"], "credits": catalog[k]["credits"],
+             "lists": catalog[k]["lists"], "terms": found.get(k, {})}
+        if k in exc_by_code:
+            c["exceptions"] = exc_by_code[k]
+        courses.append(c)
     offered = sum(1 for c in courses if c["terms"])
     if not offered:
         raise SystemExit("No elective has any posted section. Refusing to overwrite the data.")

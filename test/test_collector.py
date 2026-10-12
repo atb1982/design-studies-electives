@@ -1,6 +1,7 @@
 """Offline tests: run the parsers against pages saved from the real sites.
 Run with:  python -m unittest discover -s test -v
 """
+import copy
 import json
 import sys
 import unittest
@@ -129,26 +130,57 @@ class CsvTests(unittest.TestCase):
 
 
 
-class SupplementTests(unittest.TestCase):
+class ExceptionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.html = json.loads((SAMPLES / "search-DS-2268.json").read_text(encoding="utf-8"))["html"]
-        cls.sup = C.load_supplement(ROOT / "supplement.json")
+        cls.exceptions = C.load_exceptions(ROOT / "exceptions.json")
         cls.cat = C.parse_catalog((SAMPLES / "catalog-design-studies-ba.html").read_text(encoding="utf-8"))
 
-    def test_supplement_file_lists_the_advisor_courses(self):
-        codes = [c["code"] for c in self.sup["courses"]]
-        for code in ("DS 492", "DS 292", "DS 451", "D 231", "D 292", "D 492"):
+    def merged(self):
+        cat = copy.deepcopy(self.cat)
+        by_code, added = C.merge_exceptions(cat, self.exceptions)
+        return cat, by_code, added
+
+    def test_file_lists_the_advisor_courses(self):
+        codes = {e["code"] for e in self.exceptions}
+        for code in ("ARS 257", "MUS 260", "ARC 241", "TT 105", "DS 451", "DS 492", "D 231"):
             self.assertIn(code, codes)
 
-    def test_merge_adds_only_courses_missing_from_catalog(self):
-        cat = dict(self.cat)
-        added = C.merge_supplement(cat, self.sup)
-        self.assertEqual(added, {"DS 492", "DS 292", "DS 451", "D 231"} - set(self.cat))
-        self.assertIn("DS 492", added)
-        self.assertEqual(cat["DS 492"]["lists"], [self.sup["label"]])
-        self.assertNotIn("D 492", added)                 # already a Theory Unit elective
-        self.assertNotIn(self.sup["label"], cat["D 492"]["lists"])
+    def test_every_category_named_in_the_file_exists(self):
+        C.check_exceptions(self.exceptions, self.cat)          # raises SystemExit on a misspelling
+
+    def test_misspelled_category_stops_the_run(self):
+        bad = [{"code": "X 1", "title": "", "counts": "Art Histroy Survey", "condition": "", "topic": ""}]
+        with self.assertRaises(SystemExit):
+            C.check_exceptions(bad, self.cat)
+
+    def test_merge_adds_missing_courses_and_tags_every_excepted_course(self):
+        cat, by_code, added = self.merged()
+        self.assertIn("MUS 260", added)
+        self.assertEqual(cat["MUS 260"]["lists"], ["Art History Survey", "Exception"])
+        self.assertNotIn("ARC 241", added)                   # already a Design History elective
+        self.assertEqual(cat["ARC 241"]["lists"], ["Design History", "History Unit", "Art History Survey", "Exception"])
+        self.assertEqual(cat["DS 292"]["lists"], ["Exception"])               # counts toward nothing in particular
+        self.assertEqual(by_code["ARC 241"][0]["counts"], "Art History Survey")
+
+    def test_section_topic_limits_an_entry_and_one_course_can_have_two_entries(self):
+        _, by_code, _ = self.merged()
+        entries = by_code["DS 492"]
+        self.assertEqual(len(entries), 2)
+        self.assertTrue(any(e.get("topic") == "Global Microhistories of Design" for e in entries))
+
+    def test_retired_entries_are_not_published(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "exceptions.json"
+            path.write_text(json.dumps({"exceptions": [
+                {"code": "A 1", "title": "Old", "counts_toward": "", "status": "retired"},
+                {"code": "A 2", "title": "New", "counts_toward": ""}]}))
+            self.assertEqual([e["code"] for e in C.load_exceptions(path)], ["A 2"])
+            path.write_text(json.dumps({"exceptions": [{"code": "A 3", "status": "maybe"}]}))
+            with self.assertRaises(SystemExit):
+                C.load_exceptions(path)
 
     def test_course_heading_gives_title_and_credit_range(self):
         found = C.parse_search(self.html)

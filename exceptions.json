@@ -1,0 +1,123 @@
+{
+  "about": "Courses that advisors accept for a requirement although the program page does not list them. status is active or retired (never delete an entry; retire it). counts_toward must match a catalog category exactly, or be empty when it varies. condition is shown to students. topic limits an entry to sections with that topic. approved and source are for the record only and are not shown on the page.",
+  "exceptions": [
+    {
+      "code": "ARS 257",
+      "title": "Technology in the Arts",
+      "counts_toward": "Art History Survey",
+      "condition": "",
+      "approved": "2026-03-12",
+      "source": "DS advisors thread, Mar 12, 2026 (Bess Williamson proposed; Tania Allen approved)",
+      "status": "active"
+    },
+    {
+      "code": "ARS 410",
+      "title": "Art and History of World Puppetry",
+      "counts_toward": "Art History Survey",
+      "condition": "Your advisor submits a substitution after you register.",
+      "approved": "2026-10-07",
+      "source": "DS advisors thread, Oct 7, 2026 (Bess Williamson list)",
+      "status": "active"
+    },
+    {
+      "code": "ARC 241",
+      "title": "History of World Architecture",
+      "counts_toward": "Art History Survey",
+      "condition": "Needs the professor's permission: email the professor, who usually asks for a short assignment first. Your advisor submits a substitution after you register.",
+      "approved": "2026-10-07",
+      "source": "DS advisors thread, Oct 7, 2026 (listed there as ARC 262; Andres Tellez confirmed the course is ARC 241)",
+      "status": "active"
+    },
+    {
+      "code": "DS 492",
+      "title": "Special Topics in Design Studies",
+      "counts_toward": "Art History Survey",
+      "topic": "Global Microhistories of Design",
+      "condition": "Your advisor submits a substitution after you register.",
+      "approved": "2026-10-07",
+      "source": "DS advisors thread, Oct 7, 2026 (Bess Williamson list)",
+      "status": "active"
+    },
+    {
+      "code": "MUS 210",
+      "title": "Introduction to Popular Music: 1950s-1970s",
+      "counts_toward": "Art History Survey",
+      "condition": "",
+      "approved": "2026-03-12",
+      "source": "DS advisors thread, Mar 12, 2026 (Bess Williamson proposed; Tania Allen approved)",
+      "status": "active"
+    },
+    {
+      "code": "MUS 212",
+      "title": "Music of North Carolina",
+      "counts_toward": "Art History Survey",
+      "condition": "",
+      "approved": "2026-03-12",
+      "source": "DS advisors thread, Mar 12, 2026 (Bess Williamson proposed; Tania Allen approved)",
+      "status": "active"
+    },
+    {
+      "code": "MUS 260",
+      "title": "History of Jazz",
+      "counts_toward": "Art History Survey",
+      "condition": "Your advisor submits a substitution after you register.",
+      "approved": "2026-10-07",
+      "source": "DS advisors thread, Oct 7, 2026 (Bess Williamson list)",
+      "status": "active"
+    },
+    {
+      "code": "MUS 340",
+      "title": "From Wax Cylinders to AI: Music Technology in Modern History",
+      "counts_toward": "Art History Survey",
+      "condition": "Your advisor submits a substitution after you register.",
+      "approved": "2026-10-07",
+      "source": "DS advisors thread, Oct 7, 2026 (Bess Williamson list)",
+      "status": "active"
+    },
+    {
+      "code": "TT 105",
+      "title": "Introduction to Textile Technology",
+      "counts_toward": "Application Unit",
+      "condition": "",
+      "approved": "2026-03-23",
+      "source": "DS advisors thread, Mar 23, 2026 (Tania Allen approved for a CODA from Wilson College of Textiles)",
+      "status": "active"
+    },
+    {
+      "code": "DS 451",
+      "title": "Design Writing: Insight and Critique",
+      "counts_toward": "Advanced Writing",
+      "condition": "It may not appear in your degree audit yet. Your advisor can add it.",
+      "approved": "2026-10-08",
+      "source": "DS advisors thread, Oct 8, 2026 (Bess Williamson; written there as DS 415, confirmed as DS 451)",
+      "status": "active"
+    },
+    {
+      "code": "DS 292",
+      "title": "Special Topics in Design Studies",
+      "counts_toward": "",
+      "condition": "",
+      "approved": "",
+      "source": "Earlier advising practice, moved from supplement.json (Advisor approval category)",
+      "status": "active"
+    },
+    {
+      "code": "DS 492",
+      "title": "Special Topics in Design Studies",
+      "counts_toward": "",
+      "condition": "",
+      "approved": "",
+      "source": "Earlier advising practice, moved from supplement.json (Advisor approval category)",
+      "status": "active"
+    },
+    {
+      "code": "D 231",
+      "title": "Design History for Engineers and Scientists",
+      "counts_toward": "",
+      "condition": "",
+      "approved": "",
+      "source": "Earlier advising practice, moved from supplement.json (Advisor approval category)",
+      "status": "active"
+    }
+  ]
+}

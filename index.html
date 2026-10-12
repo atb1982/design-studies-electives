@@ -114,6 +114,8 @@ footer.legal strong{font:700 18px var(--display)}
 .also{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
 .also button{font-size:13px;background:none;border-radius:4px;padding:1px 7px}
 .also button:hover{border-color:var(--accent);color:var(--accent)}
+.exc{margin:6px 0 0;font-size:12px;line-height:1.4;color:var(--muted);max-width:230px}
+.exc+.exc{margin-top:4px}
 .cat ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
 .pill,.chip{display:inline-block;font-size:13px;font-weight:500;line-height:1.3;padding:2px 10px;border-radius:99px;background:var(--bg-c,var(--c-gen-bg));color:var(--ink-c,var(--c-gen-ink));border:1px solid transparent}
 .pill.c-advised{--bg-c:var(--c-gen-bg);--ink-c:var(--c-gen-ink)}
@@ -125,7 +127,7 @@ footer.legal strong{font:700 18px var(--display)}
 .pill.c-theory-unit,.chip.c-theory-unit{--bg-c:var(--c-theo-bg);--ink-c:var(--c-theo-ink)}
 .pill.c-art-history-survey,.chip.c-art-history-survey{--bg-c:var(--c-surv-bg);--ink-c:var(--c-surv-ink)}
 .pill.c-design-history,.chip.c-design-history{--bg-c:var(--c-dh-bg);--ink-c:var(--c-dh-ink)}
-.pill.c-advisor-approval,.chip.c-advisor-approval{--bg-c:var(--c-adv-bg);--ink-c:var(--c-adv-ink);border:1px dashed var(--c-adv-ink);font-weight:700}
+.pill.c-exception,.chip.c-exception{--bg-c:var(--c-adv-bg);--ink-c:var(--c-adv-ink);border:1px dashed var(--c-adv-ink);font-weight:700}
 .secs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
 .sec{align-items:baseline;padding-bottom:8px;border-bottom:1px dashed var(--line)}
 .sec:last-child{border-bottom:0;padding-bottom:0}
@@ -271,19 +273,19 @@ dialog.plan{width:min(960px,calc(100% - 24px));max-height:min(94vh,900px)}
     <div class="seg" id="terms" role="group" aria-label="Term"></div>
     <div class="controls">
       <label>Search<input id="q" type="search" placeholder="Title, instructor, class # or keywords"></label>
-      <label>Showing<select id="avail">
+      <label>Elective category<select id="cat"></select></label>
+      <label>Level<select id="level">
+        <option value="">Any level</option><option value="1">100</option><option value="2">200</option><option value="3">300</option><option value="4">400</option><option value="5">500 (graduate)</option>
+      </select></label>
+      <label>Online or in person<select id="mode">
+        <option value="">Either</option><option value="online">Online only</option><option value="inperson">In person</option>
+      </select></label>
+      <label>Filter<select id="avail">
         <option value="offered">Offered this term</option>
         <option value="open">With open seats</option>
         <option value="fast" hidden>Filling fast</option>
         <option value="not">Not offered this term</option>
         <option value="all">All listed electives</option>
-      </select></label>
-      <label>Elective category<select id="cat"></select></label>
-      <label>Level<select id="level">
-        <option value="">Any level</option><option value="1">100</option><option value="2">200</option><option value="3">300</option><option value="4">400</option><option value="5">500 (graduate)</option>
-      </select></label>
-      <label>Format<select id="mode">
-        <option value="">Any format</option><option value="online">Online only</option><option value="inperson">In person</option>
       </select></label>
     </div>
     <div class="sched">
@@ -311,7 +313,7 @@ dialog.plan{width:min(960px,calc(100% - 24px));max-height:min(94vh,900px)}
     <p>Sections and seats come from NC State Class Search as of the time shown above, so a section can fill after that. Restricted sections are often limited to certain majors or need departmental approval, so confirm with an advisor before planning around them.</p>
     <p>My plan collects the sections you choose, flags time conflicts, and lets you print the plan, save it as a PDF, or copy it as text for an email. It is kept only in your browser. Seat trends compare today's open seats with those from about a week ago, so they appear a few days after the first collection.</p>
     <p class="key" aria-label="Seat colors"><span class="ok">Seats available</span><span class="low">Running low (2 or fewer, or 20 percent or less)</span><span class="full">Closed</span></p>
-    <p>Courses in the Advisor approval category are not on the catalog's elective lists but usually count with an advisor's approval. Special topics sections can change topic each semester, so check the topic first.</p>
+    <p>A course tagged Exception is not on the program's elective lists in the catalog, but Design Studies advisors may accept it for a requirement. The request comes from you: contact your advisor, usually after you register. The degree audit may not show these courses until your advisor submits a substitution. Special topics sections can change topic each semester, so check the topic first.</p>
     <details>
       <summary>About this list</summary>
       <p>The day and time filters keep a section only when all of its meetings fall on the days you pick and inside the time window. Sections with no set meeting time, such as online or TBD, always fit.</p>
@@ -353,6 +355,16 @@ function pickDefaultTerm() {
   return (upcoming || terms[terms.length - 1] || {}).id || '';
 }
 
+/* Elective category menu: the catalog's order and wording */
+function buildCats(present, keep) {
+  const have = (l) => present.includes(l);
+  const head = CAT_ORDER.filter((l) => (GROUPS[l] ? GROUPS[l].some(have) : have(l)));
+  const odd = present.filter((l) => !CAT_ORDER.includes(l) && !CAT_TAIL.includes(l)).sort();
+  const order = [...head, ...odd, ...CAT_TAIL.filter(have)];
+  $('cat').innerHTML = '<option value="">All categories</option>' + order.map((l) => `<option value="${esc(l)}">${esc(MENUNAME[l] || l)}</option>`).join('');
+  if (order.includes(keep)) $('cat').value = keep;
+}
+
 function show(data) {
   terms = data.terms;
   generated = data.generated;
@@ -364,9 +376,7 @@ function show(data) {
   applyDetails();
   if (!terms.some((t) => t.id === state.term)) state.term = pickDefaultTerm();
   const keep = $('cat').value;
-  const lists = [...new Set(rows.flatMap((r) => r.lists))].sort();
-  $('cat').innerHTML = '<option value="">All categories</option>' + lists.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
-  if (lists.includes(keep)) $('cat').value = keep;
+  buildCats([...new Set(rows.flatMap((r) => r.lists))], keep);
   buildIndex();
   if (!hashApplied) { hashApplied = true; readHash(); loadPlan(); }
   $('stamp').textContent = isNaN(new Date(generated)) ? 'Data loaded' : 'Data collected ' + when(generated, true);
@@ -463,7 +473,7 @@ document.addEventListener('click', (e) => { const b = e.target.closest('.lhead [
 
 function matches(r, f) {
   if (f.q && !queryMatches(r, f.q)) return false;
-  if (f.cat && !r.lists.includes(f.cat)) return false;
+  if (f.cat && !catHit(r, f.cat)) return false;
   if (f.level && (f.level === '5' ? +r.num[0] < 5 : r.num[0] !== f.level)) return false;
   const secs = shownSecs(r);
   if (scheduleActive() && f.avail !== 'not' && !secs) return false;
@@ -475,6 +485,15 @@ function matches(r, f) {
   return true;
 }
 
+/* Category names as the catalog words them. Data keys stay as collected so shared links keep working. */
+const PILLNAME = { 'World Language': 'World Languages, Literature and Culture', 'Advised (general)': 'Advised Electives' };
+const MENUNAME = { ...PILLNAME, Exception: 'Exceptions' };
+const pillText = (l) => PILLNAME[l] || l;
+const UNITS = 'Application, Theory, or History Unit Electives';           // the catalog's pointer to three lists; filters to their union
+const GROUPS = { [UNITS]: ['Application Unit', 'Theory Unit', 'History Unit'] };
+const CAT_ORDER = ['Advanced Writing', 'Humanities', 'World Language', 'Art History Survey', 'Design History', 'Application Unit', 'Theory Unit', 'History Unit', UNITS];
+const CAT_TAIL = ['Advised (general)', 'Exception'];
+const catHit = (r, c) => (GROUPS[c] ? r.lists.some((l) => GROUPS[c].includes(l)) : r.lists.includes(c));
 const slug = (l) => 'c-' + l.toLowerCase().replace(/\s*\(.*$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 // Green: plenty of seats. Yellow: some seats taken and 2 or fewer left, or 20 percent or less of the section. Red: closed or full.
 function seatLevel(s) {
@@ -518,6 +537,19 @@ function trend(s) {
 }
 const isFast = (s) => { const t = trend(s); return !!(t && t.fast); };
 
+/* Exceptions: courses advisors accept for a requirement although the program page does not list them */
+const excWhy = (e) => (e.counts ? `Not on the program list. Contact your advisor to request that this course count toward ${pillText(e.counts)}.` : 'Not on the program list. Contact your advisor to ask whether this course can count toward your requirements.');
+const excText = (e) => excWhy(e) + (e.condition ? ' ' + e.condition : '');
+const excAsk = (e) => (e.counts ? `contact your advisor to request that this course count toward ${pillText(e.counts)}.` : 'contact your advisor to ask whether this course can count toward your requirements.');
+const excShort = (e) => {
+  const ask = e.topic ? `For sections on the topic "${e.topic}": ${excAsk(e)}` : excAsk(e).replace(/^c/, 'C');
+  return ask + (e.condition ? ' ' + e.condition : '');
+};
+const topicHit = (e, s) => !!(s && e.topic && (s.topic || '').toLowerCase().includes(e.topic.toLowerCase()));
+const excCourse = (r) => (r.exceptions || []).filter((e) => !e.topic);                 // applies to the whole course
+const excSection = (r, s) => (r.exceptions || []).filter((e) => topicHit(e, s));       // applies to sections on one topic
+const excFor = (r, s) => { const own = excSection(r, s); return [...excCourse(r).filter((e) => e.counts || !own.length), ...own]; };   // a topic entry replaces the general 'ask your advisor' line
+
 function secHTML(s, term, r) {
   const open = s.status === 'Open';
   const label = open && s.left !== null ? `${s.left} of ${s.cap} open` : s.status;
@@ -525,6 +557,7 @@ function secHTML(s, term, r) {
   if (s.topic) bits.push('Topic: ' + s.topic);
   if (s.dates && s.dates !== term.dates) bits.push('Dates: ' + s.dates);
   if (s.restrictions) bits.push(s.restrictions);
+  excSection(r, s).forEach((e) => bits.push('Exception: ' + excText(e)));
   const key = secKey(term.id, r, s), on = plan.has(key), tr = trend(s);
   const cls = s.cls ? `<button type="button" class="cls" data-copy="${esc(s.cls)}" title="Copy class number" aria-label="Class number ${esc(s.cls)}. Activate to copy it.">#${esc(s.cls)}</button>` : '';
   const add = `<button type="button" class="add" data-key="${esc(key)}" data-name="${esc(r.code + ' section ' + s.section)}" aria-pressed="${on}" aria-label="${esc(addLabel(on, r.code + ' section ' + s.section))}" title="${on ? 'Remove this section from My plan' : 'Add this section to My plan'}">${on ? '✓ In my plan' : '+ Add to my plan'}</button>`;
@@ -537,8 +570,8 @@ function courseHTML(r, term) {
   const also = others.length
     ? `<div class="also">Also in ${others.map((t) => `<button type="button" data-term="${esc(t.id)}">${esc(t.short)}</button>`).join('')}</div>`
     : (secs ? '' : '<div class="also">No sections posted for any term yet</div>');
-  const cats = r.lists.map((l) => `<li><span class="pill ${slug(l)}">${esc(l)}</span></li>`).join('');
-  return `<article class="course"><div class="id"><div class="code">${esc(r.subj)} <span>${esc(r.num)}${r.credits ? ' · ' + esc(r.credits) + ' cr' : ''}</span></div><div class="name"><button type="button" data-info="${esc(r.code)}" aria-haspopup="dialog">${esc(r.title || 'Title not listed in catalog')}</button></div>${snippet(r)}${also}</div><div class="cat"><ul>${cats}</ul></div>
+  const cats = r.lists.map((l) => `<li><span class="pill ${slug(l)}">${esc(pillText(l))}</span></li>`).join('');
+  return `<article class="course"><div class="id"><div class="code">${esc(r.subj)} <span>${esc(r.num)}${r.credits ? ' · ' + esc(r.credits) + ' cr' : ''}</span></div><div class="name"><button type="button" data-info="${esc(r.code)}" aria-haspopup="dialog">${esc(r.title || 'Title not listed in catalog')}</button></div>${snippet(r)}${also}</div><div class="cat"><ul>${cats}</ul>${(r.exceptions || []).map((e) => `<p class="exc">${esc(excShort(e))}</p>`).join('')}</div>
   <ul class="secs">${secs ? sortSecs(secs).map((s) => secHTML(s, term, r)).join('') : '<li class="none">Not offered this term</li>'}</ul></article>`;
 }
 
@@ -645,7 +678,7 @@ async function openInfo(code, opener) {
   const d = all && all[code];
   infoOpener = opener || null;
   const credits = d && d.h ? d.h : (r.credits ? r.credits + ' credit hours' : '');
-  const chips = r.lists.map((l) => `<span class="chip ${slug(l)}">${esc(l)}</span>`).join('');
+  const chips = r.lists.map((l) => `<span class="chip ${slug(l)}">${esc(pillText(l))}</span>`).join('');
   const posted = terms.filter((t) => r.terms[t.id]).map((t) => `<li>${esc(t.label)}: ${r.terms[t.id].length} ${r.terms[t.id].length === 1 ? 'section' : 'sections'}</li>`).join('');
   const missing = all
     ? 'The catalog has no entry for this course code. It may have been retired or renumbered, so please confirm with the department.'
@@ -658,6 +691,7 @@ async function openInfo(code, opener) {
     (d && d.co ? block('Corequisites', `<p>${esc(d.co)}</p>`) : '') +
     (d && d.o ? block('Typically offered', `<p>Typically offered ${esc(d.o)}.</p><p class="fine">This is the catalog's general pattern, not a promise for any one term.</p>`) : '') +
     (d && d.n && d.n.length ? block('Other catalog notes', `<p>${d.n.map(esc).join('<br>')}</p>`) : '') +
+    block('Exception', (r.exceptions || []).map((e) => `<p>${e.topic ? 'For sections on the topic "' + esc(e.topic) + '": ' : ''}${esc(excText(e))}</p>`).join('')) +
     block('Sections posted in Class Search', posted ? `<ul>${posted}</ul>` : '<p>No sections are posted for any term yet.</p>') +
     `<div class="links"><a href="https://catalog.ncsu.edu/search/?P=${encodeURIComponent(code)}" target="_blank" rel="noopener">Open in the NC State catalog</a><a href="https://webappprd.acs.ncsu.edu/php/coursecat/directory.php" target="_blank" rel="noopener">Open NC State Class Search</a></div>` +
     `</div>`;
@@ -841,6 +875,7 @@ function whenText(s, short) {
 const sectionName = (s) => `${s.section} ${COMPONENT[s.component] || s.component}`;
 const seatText = (s) => (s.status === 'Open' && s.left !== null ? `${s.left} of ${s.cap} open` : s.status);
 const extraNotes = (s) => [s.topic && 'Topic: ' + s.topic, s.restrictions].filter(Boolean);
+const excNotes = (r, s) => excFor(r, s).map(excText);
 
 function creditRange(c) { const m = String(c || '').match(/\d+(\.\d+)?/g) || []; return m.length ? [Math.min(...m.map(Number)), Math.max(...m.map(Number))] : [0, 0]; }
 const creditText = (lo, hi) => (lo === hi ? `${lo} ${lo === 1 ? 'credit' : 'credits'}` : `${lo} to ${hi} credits`);
@@ -871,7 +906,7 @@ function planDoc() {
     all = [all[0] + tot[0], all[1] + tot[1]];
     const warns = overlaps(items).map((w) => `<p class="warn"><b>Time conflict.</b> ${esc(w)}</p>`).join('');
     return `<h3>${esc(t.label)}</h3><div class="scroll"><table><thead><tr><th>Course</th><th>Class number</th><th>Section</th><th>Days and time</th><th>Location</th><th>Instructor</th><th>Seats</th><th>Credits</th></tr></thead><tbody>` +
-      items.map(({ r, s }) => `<tr><td><span class="t">${esc(r.code)}</span><br>${esc(r.title)}${extraNotes(s).map((n) => `<br><span class="sub">${esc(n)}</span>`).join('')}</td><td>${esc(s.cls || 'Not listed')}</td><td>${esc(sectionName(s))}</td><td>${esc(whenText(s, true))}</td><td>${esc(s.location || 'To be announced')}</td><td>${esc(s.instructor || 'Staff')}</td><td>${esc(seatText(s))}</td><td>${esc(r.credits)}</td></tr>`).join('') +
+      items.map(({ r, s }) => `<tr><td><span class="t">${esc(r.code)}</span><br>${esc(r.title)}${extraNotes(s).map((n) => `<br><span class="sub">${esc(n)}</span>`).join('')}${excNotes(r, s).map((n) => `<br><span class="sub"><b>Exception:</b> ${esc(n)}</span>`).join('')}</td><td>${esc(s.cls || 'Not listed')}</td><td>${esc(sectionName(s))}</td><td>${esc(whenText(s, true))}</td><td>${esc(s.location || 'To be announced')}</td><td>${esc(s.instructor || 'Staff')}</td><td>${esc(seatText(s))}</td><td>${esc(r.credits)}</td></tr>`).join('') +
       `</tbody></table></div><p class="tot">${esc(t.label)} total: ${creditText(...tot)}</p>${warns}`;
   }).join('');
   return `<div class="doc"><h2>Design Studies course plan</h2><p class="meta">${planMeta.student ? 'Student: ' + esc(planMeta.student) + ' · ' : ''}Prepared ${esc(preparedOn())}</p>` +
@@ -898,6 +933,7 @@ function planText() {
         `   Instructor:    ${s.instructor || 'Staff'}`,
         `   Seats:         ${seatText(s)}`);
       extraNotes(s).forEach((n) => L.push(`   Note:          ${n}`));
+      excNotes(r, s).forEach((n) => L.push(`   Exception:     ${n}`));
     });
     const warns = overlaps(items);
     if (warns.length) L.push('', 'TIME CONFLICTS', ...warns.map((w) => '   ' + w));

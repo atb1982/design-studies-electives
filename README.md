@@ -24,13 +24,27 @@ The site is one static page (`index.html`) that reads `data/electives.json`. A G
 
 ## Using the page
 
+- **Filters.** Below the search box are four menus: Elective category, Level, Online or in person, and Filter (offered this term, with open seats, filling fast, not offered, or all listed electives). The Elective category menu follows the order and wording of the catalog's requirement lists. The entry "Application, Theory, or History Unit Electives" combines the three unit lists, because the catalog tells students to choose from them together. Category names are stored under their original keys, so links that people already shared keep working.
 - **Sorting.** Click any column heading to sort, and click again to reverse. Course and Elective category order the courses. The section headings (Section, Days and time, Location, Instructor, Seats) order the sections inside each course and then order the courses by their first section. Empty values always sort last. On narrow screens a Sort by menu does the same job.
 - **Day and time filters.** Pick the weekdays you can attend and a window such as "starts no earlier than 1:00 PM" and "ends no later than 5:00 PM". The list keeps only sections whose meetings all fit. Sections with no set meeting time, such as online or TBD, always fit.
 - **Search.** The search box matches course codes, titles, topics, instructors, class numbers and catalog description words. It ignores accents and capitalization, understands related word forms, and ranks courses whose title contains the whole phrase first. Matching description words are shown under the course title.
 - **Shareable links.** The address in the browser changes with the term, search, filters and sort. **Copy link to this view** copies it, so an advisor can send a student exactly the list they were looking at. Links carry no personal information.
 - **My plan.** **Add to my plan** on a section saves it in the visitor's own browser (nothing is sent anywhere). **View my plan** opens the list with credits per term, warnings for sections that overlap in time, and optional fields for a student name and advisor notes. **Print or save as PDF** produces a one page advising sheet. **Copy plan as text** produces a plain text version organized by term, with one labeled block per course, for pasting into an email.
 - **Seat dots and category colors.** A green dot means plenty of seats, yellow means few left, red means closed. Each elective category has its own color. Class numbers appear next to each section and are the numbers to enter in MyPack.
-- **Advisor approval courses.** `supplement.json` lists courses that are not on the catalog's elective lists but usually count with an advisor's approval (for example DS 492 Special Topics). They are collected like any other course and shown in the "Advisor approval (not on catalog list)" category. To add or remove one, edit that file (`code` and `title`) and commit. A course that the catalog already lists keeps its catalog category.
+- **Exceptions.** `exceptions.json` lists courses that Design Studies advisors accept for a requirement although the program page in the catalog does not list them (for example MUS 260 History of Jazz for the Art History Survey). Each one carries the tag of the category it counts toward (so it also appears when students filter by that category) and an Exception tag, appears under the Exception choice in the Elective category menu, and shows a note that the student must contact an advisor to request that it count toward the named category. The same note appears in the course pop-up and in the printed or copied plan. See "Keeping the exceptions up to date" below.
+
+## Keeping the exceptions up to date
+
+Edit `exceptions.json` on GitHub (open the file, choose the pencil icon, change it, commit) and then run the workflow once. Each entry has these fields:
+
+- `code` and `title`: the course. The catalog title wins for courses the catalog already lists.
+- `counts_toward`: the requirement it may count toward. It must match a category on the site exactly (Advanced Writing, Application Unit, Art History Survey, Design History, History Unit, Humanities, Theory Unit, World Language), or be empty when it varies. A misspelled category stops the next collection with a clear message, so the live site is never changed by a typo.
+- `condition` (optional): one sentence shown to students, such as "Needs the professor's permission."
+- `topic` (optional): limits the entry to sections of a special topics course that carry this topic, for example "Global Microhistories of Design". Topics change by term, so a topic entry follows the topic, not the section number.
+- `status`: `active`, or `retired` when advisors withdraw the exception. Retired entries stay in the file as a record and are not shown. Do not delete entries.
+- `approved` and `source`: when and where the exception was agreed (for example "DS advisors thread, Oct 7, 2026"). These are for the record and never appear on the page.
+
+A course may have more than one entry. A course that the catalog already lists keeps its own categories and gains the category tag and the Exception tag.
 
 ## The Refresh data button
 
